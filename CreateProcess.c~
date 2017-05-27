@@ -4,7 +4,6 @@
 * OS Term Project
 * CPU Scheduling Simulator
 *
-*
 */
 
 #include<stdio.h>

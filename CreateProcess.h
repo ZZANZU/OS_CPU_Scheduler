@@ -42,6 +42,8 @@ Process *Dequeue(Queue *queue);
 Process *CreateProcess();
 void ShowProcess(Queue *queue, Process *process);
 
+Queue* CopyQueue(Queue *copiedQueue, Queue *readyQueue);
+
 /*---------------------------------------------------*/
 
 void InitQueue(Queue *queue){
@@ -93,6 +95,8 @@ void ShowProcess(Queue *queue, Process *process){
 		printf("Process[%d].Priority : %d\n", i, process[i].Priority);
 		*/
 	}
+	
+	printf("--------------------------------------------------------------------------------\n");
 }
 
 int IsQueueEmpty(Queue *queue){ return queue->count == 0; }
@@ -110,12 +114,11 @@ void Enqueue(Queue *queue, Process *process){
 	
 	queue->rear = now;
 	queue->count++;
-	
 }
 
-Process *Dequeue(Queue *queue){
+Process* Dequeue(Queue *queue){
 	Process *returnNode;
-	Node *now;
+	Node *now = (Node*)malloc(sizeof(Process));//
 	
 	if(IsQueueEmpty(queue)){
 		return returnNode;
@@ -125,9 +128,24 @@ Process *Dequeue(Queue *queue){
 	returnNode = now->data;
 	queue->front = now->next;
 	
-	free(now);
-	
 	queue->count--;
 	
+	free(now);//
 	return returnNode;
 }
+
+/*-------------------------------------------------------
+// from ready queue to copied queue
+Queue* CopyQueue(Queue *copiedQueue, Queue *readyQueue){
+	int i = 0;
+	while(!IsQueueEmpty(readyQueue)){
+		Enqueue(copiedQueue, readyQueue->front->data);
+		Dequeue(readyQueue);
+		printf("enqueue & dequeue : %d\n", i);//test
+		i++;//test
+	}
+	printf("copy completed!\n");//test
+	
+	return copiedQueue;
+}
+-------------------------------------------------------*/

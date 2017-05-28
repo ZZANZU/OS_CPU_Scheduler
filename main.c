@@ -2,14 +2,18 @@
 
 int main(){
 	int i;
-	Queue queue;
+	Queue readyQueue, copiedQueue;
 	
-	InitQueue(&queue);
+	InitQueue(&readyQueue);
+	InitQueue(&copiedQueue);
 	
 	Process *process;
-	process = CreateProcess(&queue);
 	
-	ShowProcess(&queue, process);
+	process = CreateProcess(&readyQueue);
 	
+	copiedQueue = readyQueue;
+	
+	ShowProcess(&readyQueue, process);
+	printf("%d\n", copiedQueue.front->data->PID);
 }
 

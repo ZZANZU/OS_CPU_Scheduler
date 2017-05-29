@@ -50,6 +50,9 @@ Queue* CopyQueue(Queue *copiedQueue, Queue *readyQueue);
 void CopyProcess(Process *process);
 void PrintMenu();
 
+// scheduling algorithms
+void algorithm_FCFS();
+
 /*---------------------------------------------------*/
 
 Process *process_FCFS, 
@@ -59,21 +62,23 @@ Process *process_FCFS,
 	 	*process_P_Priority,
 	 	*process_RR;
 	 	
+Queue queue_FCFS;
+	 	
 /*---------------------------------------------------*/
 
 
 int main(){
 	int i;
-	Queue readyQueue, copiedQueue;
+	Queue jobQueue, copiedQueue;
 	
-	InitQueue(&readyQueue);
+	InitQueue(&jobQueue);
 	InitQueue(&copiedQueue);
 	
 	Process *process;
-	process = CreateProcess(&readyQueue);
+	process = CreateProcess(&jobQueue);
 	
 	// test
-	ShowProcess(&readyQueue, process);
+	ShowProcess(&jobQueue, process);
 	PrintMenu();
 	
 	CopyProcess(process);
@@ -111,6 +116,7 @@ void PrintMenu(){
 	switch(select_mode){
 		case 1:
 			// TODO : FCFS
+			algorithm_FCFS();
 			break;
 		case 2:
 			// TODO : Non-Preemptive Shortest Job First
@@ -132,6 +138,14 @@ void PrintMenu(){
 			break;
 	}
 	
+}
+
+void algorithm_FCFS(){
+
+	InitQueue(&queue_FCFS);
+	
+	Enqueue(&queue_FCFS, process_FCFS);
+	printf("FCFS algorithm\n");//test
 }
 
 /*

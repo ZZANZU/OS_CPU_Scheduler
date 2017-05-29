@@ -79,6 +79,9 @@ int main(){
 	CopyProcess(process);
 	//printf("count : %d\n", readyQueue.count);
 	//printf("%d\n", process_FCFS[2].PID);gi
+
+
+	
 }
 
 /*---------------------------------------------------*/
@@ -105,14 +108,50 @@ void PrintMenu(){
 	printf("\nEnter the algorithm number you want! :\n");
 	scanf("%d", &select_mode);
 	
+	switch(select_mode){
+		case 1:
+			// TODO : FCFS
+			break;
+		case 2:
+			// TODO : Non-Preemptive Shortest Job First
+			break;
+		case 3:
+			// TODO : Preemptive Shortest Job First
+			break;
+		case 4:
+			// TODO : Non-Preemptive Priority
+			break;
+		case 5:
+			// TODO : Preemptive Priority
+			break;
+		case 6:	
+			// TODO : Round Robin
+			break;
+		default:
+			printf("Please enter between 1 and 6 !\n");
+			break;
+	}
+	
 }
 
-
+/*
+*
+* Initialize given queue
+* @param : queue
+*
+*/
 void InitQueue(Queue *queue){
 	queue->front = queue->rear = NULL;
 	queue->count = 0;
 }
 
+/*
+*
+* given number of queue's nodes, create processes.
+* @param : queue
+* 20170529
+*
+*/
 Process* CreateProcess(Queue *queue){
 	srand((unsigned int)time(NULL));
 	int i;
@@ -149,13 +188,6 @@ void ShowProcess(Queue *queue, Process *process){
 		, process[i].BurstTimeCPU
 		, process[i].BurstTimeIO
 		, process[i].Priority);
-		/*
-		printf("Process[%d].PID : %d\n", i, process[i].PID);
-		printf("Process[%d].ArrivalTime : %d\n", i, process[i].ArrivalTime);
-		printf("Process[%d].BurstTimeCPU : %d\n", i, process[i].BurstTimeCPU);
-		printf("Process[%d].BurstTimeIO : %d\n", i, process[i].BurstTimeIO);
-		printf("Process[%d].Priority : %d\n", i, process[i].Priority);
-		*/
 	}
 	
 	printf("--------------------------------------------------------------------------------\n");

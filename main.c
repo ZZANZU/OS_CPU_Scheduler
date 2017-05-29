@@ -48,6 +48,7 @@ void ShowProcess(Queue *queue, Process *process);
 Queue* CopyQueue(Queue *copiedQueue, Queue *readyQueue);
 
 void CopyProcess(Process *process);
+void PrintMenu();
 
 /*---------------------------------------------------*/
 
@@ -71,15 +72,41 @@ int main(){
 	Process *process;
 	process = CreateProcess(&readyQueue);
 	
-	CopyProcess(process);
-	
 	// test
 	ShowProcess(&readyQueue, process);
-	printf("count : %d\n", readyQueue.count);
-	printf("%d\n", process_FCFS[2].PID);
+	PrintMenu();
+	
+	CopyProcess(process);
+	//printf("count : %d\n", readyQueue.count);
+	//printf("%d\n", process_FCFS[2].PID);gi
 }
 
 /*---------------------------------------------------*/
+
+/*
+*
+* Print Menu Screen & Decide what algorithm to use.
+* @param : null
+* 20170529
+*
+*/
+void PrintMenu(){
+	int select_mode;
+	
+	printf("Now you made processes.\nSo, What algorithm you want to apply?\n\n");
+	
+	printf("[1] First Come, First Served\n");
+	printf("[2] Non-Preemptive Shortest Job First\n");
+	printf("[3] Preemptive Shortest Job First\n");
+	printf("[4] Non-Preemptive Priority\n");
+	printf("[5] Preemptive Priority\n");
+	printf("[6] Round Robin\n");
+	
+	printf("\nEnter the algorithm number you want! :\n");
+	scanf("%d", &select_mode);
+	
+}
+
 
 void InitQueue(Queue *queue){
 	queue->front = queue->rear = NULL;

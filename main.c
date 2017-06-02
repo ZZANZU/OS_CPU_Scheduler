@@ -126,15 +126,20 @@ int main(){
 int CheckOtherPTime(Process *process, int current_index, int time){
 	int i;
 	
-	for(i = 0 ; i < numOfProcess ; i++){
+	for(i = 0 ; i < current_index + 1 ; i++){
 		// 모든 인덱스에 대해서 검색안하는 이유 
 		//- 이미 Priority에 대해서 정렬되어있기 때문에
 		// i를 0에서부터 증가시키며 프로세스를 체크하다가
 		// 현재 time보다 작은 arrival time의 프로세스를 찾으면
 		// 그 프로세스의 index를 return! 
-		if(process[i].ArrivalTime <= time && i != current_index){
+		if(i == current_index){
 			return i;
+		}else{
+			if(process[i].ArrivalTime <= time ){
+				return i;
+			}
 		}
+		
 	}
 	
 	return -1;
@@ -172,13 +177,14 @@ void Run_P_Priority(Process *process){
 				while(process[i].BurstTimeCPU != 0){
 					
 					check = CheckOtherPTime(process, i, time); // 실제로 time을 증가시키는 부분 이전에 나오도록?. 
-					
-					if(check < 0){ // 그냥 보통의 경 
+					//
+					if(check <= 0){ // 그냥 보통의 경우
 						process[i].BurstTimeCPU--;
 						time++;
 					}else{
 						i = check;
 					}
+					//
 				}
 				//
 				

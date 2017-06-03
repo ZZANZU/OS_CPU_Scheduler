@@ -61,7 +61,8 @@ void PrintMenu(Queue* queue);
 
 // scheduling algorithms
 void sort_Arrival_Time(Process *process); // #9 Arrival Time에 대해서 sort 
-void sort_Priority(Process *process_NP_Priority); // #8 Priority에 대해서 sort 
+void sort_Priority(Process *process); // #8 Priority에 대해서 sort 
+void sort_BurstTime(Process *process); // #15 Burst time에 대해서 sort
 
 void Run_FCFS(Process *process); // #12
 void Run_P_Priority(Process *process); // #14
@@ -111,6 +112,109 @@ int main(){
 /*---------------------------------------------------*/
 
 /*
+*
+*
+*
+*
+*
+*/
+void Run_NP_SJF(Process *process){
+	int j, i, time = 0;
+	int stop = 0; 
+	int gant_chart[100] = {0, };//
+	
+	Queue terminateQueue;
+	
+	InitQueue(&terminateQueue);
+	
+	printf("\n");
+	
+	// save #1
+	
+	// burst time 끝난 프로세스를 terminate queue 에 집어넣고,
+	// terminate queue 에 있는 프로세스의 개수가 
+	// 처음의 ready queue의 개수와 같아지면 종료
+	while(terminateQueue.count != numOfProcess){
+		stop = 0;
+		
+		for(int i = 0 ; i < numOfProcess ; i++){
+			
+			if(process[i].ArrivalTime <= time && process[i].BurstTimeCPU != 0){
+				
+				while(process[i].BurstTimeCPU != 0){
+					
+					process[i].BurstTimeCPU--;
+					gant_chart[time] = process[i].PID;//
+					time++;
+				
+				}
+
+				// process[i]의 CPU burst time이 0이 되었으므로 terminate queue로 집어넣음. 
+				Enqueue(&terminateQueue, &process[i]); // terminateQueue->count++ 
+				stop = 1; // terminate queue에 추가되었으니 line 162의 increment가 일어나면 안됨. 
+				
+				printf("process[%d] has finished!!! \n",i); // for debugging
+				printf("count of terminate queue : %d \n", terminateQueue.count); // for debugging
+				
+				i = numOfProcess; // for문을 벗어나서 다시 i = 0 부터 시작하기 위해서. line 154로 이동 
+			}
+		}
+		
+		if(stop == 0){
+			gant_chart[time] = 100;//아무 프로세스도 실행 안됨을 의미
+			time++; // enqueue이후에는 이부분이 실행되면 안됨. 
+			printf("162 : time = %d\n", time); // for debugging
+		}
+	} 	
+
+
+	
+	printf("\n");
+	
+	printf("Non-Preemptive Priority scheduling finished!\n\n");
+	
+	ShowProcess(process);
+	
+	printf("total running time : %d \n", time); 
+	
+	// 간트차트 출력
+	i = 0;
+	while(gant_chart[i] != '\0'){
+		printf("%d|",gant_chart[i]);
+		i++;
+	}
+}
+
+/*
+*
+*
+*
+*
+*
+*/
+void sort_BurstTime(Process *process){
+	Process temp_process;
+	int i, j;
+	
+	for(i = 0 ; i < numOfProcess ; i++){
+		for(j = 0 ; j < numOfProcess - 1 ; j++){
+			if(process[j].BurstTimeCPU > process[j+1].BurstTimeCPU){ // Priority 기준 정렬(내림차순)
+				temp_process = process[j];
+				process[j] = process[j+1];
+				process[j+1] = temp_process;
+			}
+		}
+	}
+	
+	// arrival time으로도 sorting
+	// burst time 같은게 3개면 ㅠㅠ?
+	
+	
+	printf("\nGiven processes were sorted with Burst Time!\n\n");
+	ShowProcess(process); // sort된 결과 출력 
+}
+
+/*
 * #14 - 1
 *
 * Preemptive Priority 스케줄링에서  
@@ -132,13 +236,15 @@ int CheckOtherPTime(Process *process, int current_index, int time){
 		// i를 0에서부터 증가시키며 프로세스를 체크하다가
 		// 현재 time보다 작은 arrival time의 프로세스를 찾으면
 		// 그 프로세스의 index를 return! 
-		if(i == current_index){
-			return i;
-		}else{
-			if(process[i].ArrivalTime <= time ){
+		
+		if(process[i].ArrivalTime <= time){
+			if(i == current_index){
+				return i;
+			}else{
 				return i;
 			}
 		}
+
 		
 	}
 	
@@ -169,22 +275,27 @@ void Run_P_Priority(Process *process){
 	while(terminateQueue.count != numOfProcess){
 		stop = 0;
 		
+		printf("line181\n"); // for debugging
+		
 		for(int i = 0 ; i < numOfProcess ; i++){
 			
 			if(process[i].ArrivalTime <= time && process[i].BurstTimeCPU != 0){
 				
 				//
 				while(process[i].BurstTimeCPU != 0){
-					
+					printf("line 190\n");
 					check = CheckOtherPTime(process, i, time); // 실제로 time을 증가시키는 부분 이전에 나오도록?. 
-					//
-					if(check <= 0){ // 그냥 보통의 경우
+					printf("check : %d\n",check);
+					
+					if(check < 0){ // 그냥 보통의 경우
 						process[i].BurstTimeCPU--;
 						time++;
 					}else{
 						i = check;
+						process[i].BurstTimeCPU--;
+						time++;
 					}
-					//
+			
 				}
 				//
 				
@@ -196,8 +307,9 @@ void Run_P_Priority(Process *process){
 			}
 		}
 		
-		if(stop == 0){
+		if(stop == 0){ // 모든 프로세스를 검사해보았지만 time보다 작은 Arrival Time이 없을 때
 			time++; // enqueue이후에는 이부분이 실행되면 안됨. 
+			printf("line218 : time = %d\n",time);
 		}
 	} 	
 	
@@ -228,6 +340,9 @@ void Run_P_Priority(Process *process){
 void Run_NP_Priority(Process *process){
 	int j, i, time = 0;
 	int stop = 0; 
+	
+	int gant_chart[100] = {0, } ;
+	
 	Queue terminateQueue;
 	
 	InitQueue(&terminateQueue);
@@ -242,7 +357,7 @@ void Run_NP_Priority(Process *process){
 	while(terminateQueue.count != numOfProcess){
 		stop = 0;
 		
-		printf("line 130\n"); // for debugging
+		printf("line 260\n"); // for debugging
 		
 		for(int i = 0 ; i < numOfProcess ; i++){
 			
@@ -251,8 +366,9 @@ void Run_NP_Priority(Process *process){
 				while(process[i].BurstTimeCPU != 0){
 					
 					process[i].BurstTimeCPU--;
+					gant_chart[time] = process[i].PID;
 					time++;
-					printf("140 : time = %d\n",time); // for debugging
+					printf("270 : time = %d\n",time); // for debugging
 				
 				}
 
@@ -268,8 +384,9 @@ void Run_NP_Priority(Process *process){
 		}
 		
 		if(stop == 0){
+			gant_chart[time] = 100;
 			time++; // enqueue이후에는 이부분이 실행되면 안됨. 
-			printf("156 : time = %d\n", time); // for debugging
+			printf("287 : time = %d\n", time); // for debugging
 		}
 	} 	
 
@@ -282,6 +399,13 @@ void Run_NP_Priority(Process *process){
 	ShowProcess(process);
 	
 	printf("total running time : %d \n", time); 
+	
+	// 간트차트 출력
+	i = 0;
+	while(gant_chart[i] != '\0'){
+		printf("%d|",gant_chart[i]);
+		i++;
+	}
 }
 
 /*
@@ -348,6 +472,8 @@ void PrintMenu(Queue *queue){
 		case 2:
 			// TODO : Non-Preemptive Shortest Job First
 			CopyProcess2Queue(&queue_NP_SJF, process_NP_SJF);
+			sort_BurstTime(process_NP_SJF);
+			Run_NP_SJF(process_NP_SJF);
 			
 			break;
 			
@@ -439,6 +565,7 @@ void sort_Arrival_Time(Process *process){
 }
 
 // #8
+// ★★  Arrival time에 대해서도 sort되도록 구현해야!
 void sort_Priority(Process *process){
 	Process temp_process;
 	int i, j;
@@ -449,6 +576,18 @@ void sort_Priority(Process *process){
 				temp_process = process[j];
 				process[j] = process[j+1];
 				process[j+1] = temp_process;
+			}
+		}
+	}
+	
+	// arrival time으로도 sorting
+	// priority 같은게 2개보다 많으면?
+	for(i = 0 ; i < numOfProcess - 1 ; i++){
+		if(process[i].Priority == process[i+1].Priority){
+			if(process[i].ArrivalTime > process[i+1].ArrivalTime){
+				temp_process = process[i];
+				process[i] = process[i+1];
+				process[i+1] = temp_process;
 			}
 		}
 	}

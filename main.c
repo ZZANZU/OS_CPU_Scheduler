@@ -397,7 +397,7 @@ void Run_NP_Priority(Process *process){
 			if(process[i].ArrivalTime <= time && process[i].BurstTimeCPU != 0){
 				
 				while(process[i].BurstTimeCPU != 0){
-					/////////////////waiting time 구하기/////////////////////
+					//waiting time 구하기
 					if(process[i].WaitingTime == 0){
 						process[i].WaitingTime = time - process[i].ArrivalTime; 
 					}
@@ -407,6 +407,10 @@ void Run_NP_Priority(Process *process){
 					time++;
 					printf("270 : time = %d\n",time); // for debugging
 				
+				}
+
+				if(process[i].TurnAroundTime == 0){
+					process[i].TurnAroundTime = time - process[i].ArrivalTime;
 				}
 
 				// process[i]의 CPU burst time이 0이 되었으므로 terminate queue로 집어넣음. 
@@ -451,11 +455,13 @@ void Run_NP_Priority(Process *process){
 	
 	// Evaluation
 	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
+	float tat = 0;
 	for(i = 0 ; i < numOfProcess ; i++){
 		awt += process[i].WaitingTime;
+		tat += process[i].TurnAroundTime;
 	}
 	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
-	
+	printf("Average Turnaroun time : %f\n", tat/numOfProcess);
 }
 
 /*

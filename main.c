@@ -155,12 +155,19 @@ void Run_NP_SJF(Process *process){
 			if(process[i].ArrivalTime <= time && process[i].BurstTimeCPU != 0){
 				
 				while(process[i].BurstTimeCPU != 0){
+					/*waiting time 구하기*/
+					if(process[i].WaitingTime == 0){
+						process[i].WaitingTime = time - process[i].ArrivalTime;
+					}
 					
 					process[i].BurstTimeCPU--;
 					gant_chart[time] = process[i].PID;//
 					time++;
 				
 				}
+				
+				// Turnaround time
+				process[i].TurnAroundTime = time - process[i].ArrivalTime;
 
 				// process[i]의 CPU burst time이 0이 되었으므로 terminate queue로 집어넣음. 
 				Enqueue(&terminateQueue, &process[i]); // terminateQueue->count++ 
@@ -174,13 +181,11 @@ void Run_NP_SJF(Process *process){
 		}
 		
 		if(stop == 0){
-			gant_chart[time] = 100;//아무 프로세스도 실행 안됨을 의미
+			gant_chart[time] = 71;//아무 프로세스도 실행 안됨을 의미
 			time++; // enqueue이후에는 이부분이 실행되면 안됨. 
 			printf("162 : time = %d\n", time); // for debugging
 		}
 	} 	
-
-
 	
 	printf("\n");
 	
@@ -193,9 +198,25 @@ void Run_NP_SJF(Process *process){
 	// 간트차트 출력
 	i = 0;
 	while(gant_chart[i] != '\0'){
-		printf("%d|",gant_chart[i]);
+		printf("%2d|",gant_chart[i]);
 		i++;
 	}
+	printf("\n");
+	i = 0;
+	// 시간 x축 출력 
+	while(gant_chart[i] != '\0'){
+		printf("%2d|",i+1);
+		i++;
+	}
+	// Evaluation
+	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
+	float tat = 0;
+	for(i = 0 ; i < numOfProcess ; i++){
+		awt += process[i].WaitingTime;
+		tat += process[i].TurnAroundTime;
+	}
+	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
+	printf("Average Turnaround time : %f\n", tat/numOfProcess);
 }
 
 /*

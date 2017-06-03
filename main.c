@@ -423,9 +423,16 @@ void Run_NP_Priority(Process *process){
 	i = 0;
 	// 시간 x축 출력 
 	while(gant_chart[i] != '\0'){
-		printf("%2d|",i);
+		printf("%2d|",i+1);
 		i++;
 	}
+	
+	// Evaluation
+	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
+	for(i = 0 ; i < numOfProcess ; i++){
+		awt += process[i].WaitingTime;
+	}
+	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
 	
 }
 

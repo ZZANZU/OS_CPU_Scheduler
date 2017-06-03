@@ -440,7 +440,7 @@ void Run_NP_Priority(Process *process){
 * #12
 * FCFS 스케줄링 
 * 주어진 프로세스(ArrivalTime으로 정렬된 프로세스)들을
-* reqdyQueue에서 불러온 뒤, time을 1씩 증가시키면서 'CPU' urstTime도 1씩 감소시킨다
+* reqdyQueue에서 불러온 뒤, time을 1씩 증가시키면서 'CPU' Burst Time도 1씩 감소시킨다
 * 그러다가도 중간에 I/O Exception을 발생시켜서 waitingQueue에 집어넣는다
 * waitingQueue에서는 내 임의대로 FCFS방식으로 'I/O' BurstTime을 1씩 감소시킨다. 
 *
@@ -465,7 +465,7 @@ void Run_FCFS(Process *process){
 			if(process[i].ArrivalTime <= time && process[i].BurstTimeCPU != 0){
 				
 				while(process[i].BurstTimeCPU != 0){
-					/////////////////waiting time 구하기/////////////////////
+					/*waiting time 구하기*/
 					if(process[i].WaitingTime == 0){
 						process[i].WaitingTime = time - process[i].ArrivalTime;
 					}
@@ -492,7 +492,7 @@ void Run_FCFS(Process *process){
 		}
 	}
 	
-	printf("FCFS scheduling finshed!\n\n");
+	printf("\nFCFS scheduling finshed!\n\n");
 	
 	ShowProcess(process);
 	
@@ -513,7 +513,7 @@ void Run_FCFS(Process *process){
 	}
 }
 
-/*it
+/*
 * #11
 * Print Menu Screen & Decide what algorithm to use.
 * @param : null
@@ -732,16 +732,6 @@ void ShowProcess(Process *process){
 	printf("-----------------------------------------------------------------------------------------------\n");
 
 	printf("\n");
-	
-	printf(" PID    Waiting Time\n");
-	printf("--------------------\n");
-	
-	for(i = 0 ; i < numOfProcess ; i++){
-		printf(" %2d\t   %2d\n", process[i].PID, process[i].WaitingTime);
-	}
-	
-	printf("\n");
-	
 }
 
 // #4

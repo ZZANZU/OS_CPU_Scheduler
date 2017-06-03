@@ -458,19 +458,37 @@ void Run_FCFS(Process *process){
 	printf("\n");
 	
 	while(terminateQueue.count != numOfProcess){
+		stop = 0;
 		
 		for(i = 0 ; i < numOfProcess ; i++){
-			while(process[i].BurstTimeCPU != 0){
-				process[i].BurstTimeCPU--; // CPU Burst time 감소
-				gant_chart[time] = process[i].PID; 
-				time++; // 전체 진행 시간 1 증가. 
-			}
-		
-			Enqueue(&terminateQueue, &process[i]);
+			
+			if(process[i].ArrivalTime <= time && process[i].BurstTimeCPU != 0){
 				
-			printf("process[%d] has finished! \n", i);
-			printf("count of terminate queue : %d \n", terminateQueue.count);
+				while(process[i].BurstTimeCPU != 0){
+					/////////////////waiting time 구하기/////////////////////
+					if(process[i].WaitingTime == 0){
+						process[i].WaitingTime = time - process[i].ArrivalTime;
+					}
+					
+					process[i].BurstTimeCPU--; // CPU Burst time 감소
+					gant_chart[time] = process[i].PID; 
+					time++; // 전체 진행 시간 1 증가. 
+				}
 		
+				Enqueue(&terminateQueue, &process[i]);
+				stop = 1;
+				
+				printf("process[%d] has finished! \n", i);
+				printf("count of terminate queue : %d \n", terminateQueue.count);
+				
+				i = numOfProcess;
+			}
+		}
+		
+		if(stop == 0){
+			gant_chart[time] = 71;
+			time++;
+			printf("time = %d\n", time);
 		}
 	}
 	
@@ -483,7 +501,14 @@ void Run_FCFS(Process *process){
 	// 간트차트 출력
 	i = 0;
 	while(gant_chart[i] != '\0'){
-		printf("%d|",gant_chart[i]);
+		printf("%2d|",gant_chart[i]);
+		i++;
+	}
+	printf("\n");
+	i = 0;
+	// 시간 x축 출력 
+	while(gant_chart[i] != '\0'){
+		printf("%2d|",i+1);
 		i++;
 	}
 }

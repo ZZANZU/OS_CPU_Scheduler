@@ -25,6 +25,7 @@ typedef struct Process{
 	int BurstTimeIO;
 	short int Priority;
 	char WaitingTime; // 이렇게해야 priority가 튀는 값(딱 하나)이 없어짐. 
+	char TurnAroundTime;
 }Process;
 
 typedef struct Node{
@@ -143,7 +144,7 @@ void Run_NP_SJF(Process *process){
 	
 	// save #1
 	
-	// burst time 끝난 프로세스를 terminate queue 에 집어넣고,
+	// burst time 끝난 프로세스를 terminate queue 에 집어넣고, 
 	// terminate queue 에 있는 프로세스의 개수가 
 	// 처음의 ready queue의 개수와 같아지면 종료
 	while(terminateQueue.count != numOfProcess){
@@ -474,7 +475,10 @@ void Run_FCFS(Process *process){
 					gant_chart[time] = process[i].PID; 
 					time++; // 전체 진행 시간 1 증가. 
 				}
-		
+				
+				// Turnaround time
+				process[i].TurnAroundTime = time - process[i].ArrivalTime;
+				
 				Enqueue(&terminateQueue, &process[i]);
 				stop = 1;
 				
@@ -494,7 +498,7 @@ void Run_FCFS(Process *process){
 	
 	printf("\nFCFS scheduling finshed!\n\n");
 	
-	ShowProcess(process);
+	ShowProcess(process); // 실행 결과 출력
 	
 	printf("total running time : %d \n", time);
 	
@@ -511,6 +515,15 @@ void Run_FCFS(Process *process){
 		printf("%2d|",i+1);
 		i++;
 	}
+	// Evaluation
+	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
+	float tat = 0;
+	for(i = 0 ; i < numOfProcess ; i++){
+		awt += process[i].WaitingTime;
+		tat += process[i].TurnAroundTime;
+	}
+	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
+	printf("Average Turnaround time : %f\n", tat/numOfProcess);
 }
 
 /*
@@ -705,6 +718,7 @@ Process* CreateProcess(Queue *queue){
 		process[i].BurstTimeIO = 3 + rand() % BURST_MAX;
 		process[i].Priority = 1 + rand() % PRIORITY_MAX; // 중복을 피하기 위해 큰 숫자로 설정. 
 		process[i].WaitingTime = 0;
+		process[i].TurnAroundTime = 0;
 		
 		Enqueue(queue, &process[i]);
 	}
@@ -715,21 +729,22 @@ Process* CreateProcess(Queue *queue){
 // #5
 void ShowProcess(Process *process){
 	int i;
-	printf(" process[  ]   PID    Arrival Time   CPU Burst Time   I/O Burst Time   Priority   Waiting Time\n");
-	printf("-----------------------------------------------------------------------------------------------\n");
+	printf(" process[  ]   PID    Arrival Time   CPU Burst Time   I/O Burst Time   Priority   Waiting Time   TurnAround Time\n");
+	printf("----------------------------------------------------------------------------------------------------------------\n");
 	
 	for(i = 0 ; i < numOfProcess ; i++){
-		printf(" process[%2d]   %2d        %2d\t         %2d\t           %2d\t          %2d\t       %2d\n"
+		printf(" process[%2d]   %2d        %2d\t         %2d\t           %2d\t          %2d\t       %2d\t       %2d\n"
 		, i
 		, process[i].PID
 		, process[i].ArrivalTime
 		, process[i].BurstTimeCPU
 		, process[i].BurstTimeIO
 		, process[i].Priority
-		, process[i].WaitingTime);
+		, process[i].WaitingTime
+		, process[i].TurnAroundTime);
 	}
 	
-	printf("-----------------------------------------------------------------------------------------------\n");
+	printf("----------------------------------------------------------------------------------------------------------------\n");
 
 	printf("\n");
 }

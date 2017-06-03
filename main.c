@@ -14,6 +14,7 @@
 #define BURST_MAX 8; // the maximum burst time.
 #define QUEUE_MAX 20;
 #define ARRIVAL_MAX 7;
+#define PRIORITY_MAX 50;
 
 /*---------------------------------------------------*/
 
@@ -22,8 +23,8 @@ typedef struct Process{
 	int ArrivalTime;
 	int BurstTimeCPU;
 	int BurstTimeIO;
-	int Priority;
-	//int Interrupt;
+	short int Priority;
+	char WaitingTime; // 이렇게해야 priority가 튀는 값(딱 하나)이 없어짐. 
 }Process;
 
 typedef struct Node{
@@ -57,7 +58,7 @@ void CopyProcess(Process *process);
 void CopyProcess2Queue(Queue *queue, Process *process);
 
 // User Interface
-void PrintMenu(Queue* queue);
+void PrintMenu(Queue *queue);
 
 // scheduling algorithms
 void sort_Arrival_Time(Process *process); // #9 Arrival Time에 대해서 sort 
@@ -112,9 +113,20 @@ int main(){
 /*---------------------------------------------------*/
 
 /*
+* #17
+*
+* Round Robin Scheduling 
 *
 *
+*/
+
+
+
+
+/*
+* #16
 *
+* Non-Preemptive Shortest Job Fisrt Scheduling 
 *
 *
 */
@@ -171,7 +183,7 @@ void Run_NP_SJF(Process *process){
 	
 	printf("\n");
 	
-	printf("Non-Preemptive Priority scheduling finished!\n\n");
+	printf("Non-Preemptive Shortest Job First scheduling finished!\n\n");
 	
 	ShowProcess(process);
 	
@@ -186,10 +198,9 @@ void Run_NP_SJF(Process *process){
 }
 
 /*
+* #15 
 *
-*
-*
-*
+* Burst Time을 기준으로 sort 
 *
 */
 void sort_BurstTime(Process *process){
@@ -356,7 +367,7 @@ void Run_NP_Priority(Process *process){
 	// 처음의 ready queue의 개수와 같아지면 종료
 	while(terminateQueue.count != numOfProcess){
 		stop = 0;
-		
+
 		printf("line 260\n"); // for debugging
 		
 		for(int i = 0 ; i < numOfProcess ; i++){
@@ -364,6 +375,10 @@ void Run_NP_Priority(Process *process){
 			if(process[i].ArrivalTime <= time && process[i].BurstTimeCPU != 0){
 				
 				while(process[i].BurstTimeCPU != 0){
+					/////////////////waiting time 구하기/////////////////////
+					if(process[i].WaitingTime == 0){
+						process[i].WaitingTime = time - process[i].ArrivalTime; 
+					}
 					
 					process[i].BurstTimeCPU--;
 					gant_chart[time] = process[i].PID;
@@ -384,13 +399,11 @@ void Run_NP_Priority(Process *process){
 		}
 		
 		if(stop == 0){
-			gant_chart[time] = 100;
+			gant_chart[time] = 71;
 			time++; // enqueue이후에는 이부분이 실행되면 안됨. 
 			printf("287 : time = %d\n", time); // for debugging
 		}
 	} 	
-
-
 	
 	printf("\n");
 	
@@ -403,9 +416,17 @@ void Run_NP_Priority(Process *process){
 	// 간트차트 출력
 	i = 0;
 	while(gant_chart[i] != '\0'){
-		printf("%d|",gant_chart[i]);
+		printf("%2d|",gant_chart[i]);
 		i++;
 	}
+	printf("\n");
+	i = 0;
+	// 시간 x축 출력 
+	while(gant_chart[i] != '\0'){
+		printf("%2d|",i);
+		i++;
+	}
+	
 }
 
 /*
@@ -419,13 +440,30 @@ void Run_NP_Priority(Process *process){
 */
 void Run_FCFS(Process *process){
 	int i, time = 0; // 전체 진행 시간 
+	int stop = 0;
+	
+	int gant_chart[100] = {0, };
+	
+	Queue terminateQueue;
+	
+	InitQueue(&terminateQueue);
 	
 	printf("\n");
 	
-	for(i = 0 ; i < numOfProcess ; i++){
-		while(process[i].BurstTimeCPU != 0){
-			process[i].BurstTimeCPU--; // CPU Burst time 감소 
-			time++; // 전체 진행 시간 1 증가. 
+	while(terminateQueue.count != numOfProcess){
+		
+		for(i = 0 ; i < numOfProcess ; i++){
+			while(process[i].BurstTimeCPU != 0){
+				process[i].BurstTimeCPU--; // CPU Burst time 감소
+				gant_chart[time] = process[i].PID; 
+				time++; // 전체 진행 시간 1 증가. 
+			}
+		
+			Enqueue(&terminateQueue, &process[i]);
+				
+			printf("process[%d] has finished! \n", i);
+			printf("count of terminate queue : %d \n", terminateQueue.count);
+		
 		}
 	}
 	
@@ -434,6 +472,13 @@ void Run_FCFS(Process *process){
 	ShowProcess(process);
 	
 	printf("total running time : %d \n", time);
+	
+	// 간트차트 출력
+	i = 0;
+	while(gant_chart[i] != '\0'){
+		printf("%d|",gant_chart[i]);
+		i++;
+	}
 }
 
 /*it
@@ -468,9 +513,10 @@ void PrintMenu(Queue *queue){
 			Run_FCFS(process_FCFS);
 			
 			break;
-			
+		
+		// Non-Preemptive Shortest Job First	
 		case 2:
-			// TODO : Non-Preemptive Shortest Job First
+			
 			CopyProcess2Queue(&queue_NP_SJF, process_NP_SJF);
 			sort_BurstTime(process_NP_SJF);
 			Run_NP_SJF(process_NP_SJF);
@@ -501,21 +547,15 @@ void PrintMenu(Queue *queue){
 			sort_Priority(process_P_Priority); // 여기선 어떻게 sort해야하지?
 			Run_P_Priority(process_P_Priority); // TODO 
 			
-			
-			/*
-			for(i = 0 ; i < numOfProcess ; i++){
-				Enqueue(&queue_P_Priority, process_P_Priority+i);
-				printf("process[%d] was copied into Preemptive Priority queue!\n", i);
-			}
-			*/
 			break;
 			
 		case 6:	
 			// TODO : Round Robin
-			for(i = 0 ; i < numOfProcess ; i++){
-				Enqueue(&queue_RR, process_RR+i);
-				printf("process[%d] was copied into Round Robin queue!\n", i);
-			}
+			
+			CopyProcess2Queue(&queue_RR, process_RR);
+			//sort_Arrival_Time(process_RR);
+			//Run_RR(process_RR);
+			
 			break;
 			
 		default:
@@ -631,7 +671,8 @@ Process* CreateProcess(Queue *queue){
 		process[i].ArrivalTime = 1 + rand() % ARRIVAL_MAX; // hmm...
 		process[i].BurstTimeCPU = 3 + rand() % BURST_MAX;
 		process[i].BurstTimeIO = 3 + rand() % BURST_MAX;
-		process[i].Priority = 1 + rand() % 50; // 50 : 중복을 피하기 위해 큰 숫자로 설정. 
+		process[i].Priority = 1 + rand() % PRIORITY_MAX; // 중복을 피하기 위해 큰 숫자로 설정. 
+		process[i].WaitingTime = 0;
 		
 		Enqueue(queue, &process[i]);
 	}
@@ -641,20 +682,34 @@ Process* CreateProcess(Queue *queue){
 
 // #5
 void ShowProcess(Process *process){
-	printf(" process[  ]   PID    Arrival Time   CPU Burst Time   I/O Burst Time   Priority \n");
-	printf("--------------------------------------------------------------------------------\n");
+	int i;
+	printf(" process[  ]   PID    Arrival Time   CPU Burst Time   I/O Burst Time   Priority   Waiting Time\n");
+	printf("-----------------------------------------------------------------------------------------------\n");
 	
-	for(int i = 0 ; i < numOfProcess ; i++){
-		printf(" process[%2d]   %2d        %2d\t         %2d\t           %2d\t          %2d\n"
+	for(i = 0 ; i < numOfProcess ; i++){
+		printf(" process[%2d]   %2d        %2d\t         %2d\t           %2d\t          %2d\t       %2d\n"
 		, i
 		, process[i].PID
 		, process[i].ArrivalTime
 		, process[i].BurstTimeCPU
 		, process[i].BurstTimeIO
-		, process[i].Priority);
+		, process[i].Priority
+		, process[i].WaitingTime);
 	}
 	
-	printf("--------------------------------------------------------------------------------\n");
+	printf("-----------------------------------------------------------------------------------------------\n");
+
+	printf("\n");
+	
+	printf(" PID    Waiting Time\n");
+	printf("--------------------\n");
+	
+	for(i = 0 ; i < numOfProcess ; i++){
+		printf(" %2d\t   %2d\n", process[i].PID, process[i].WaitingTime);
+	}
+	
+	printf("\n");
+	
 }
 
 // #4

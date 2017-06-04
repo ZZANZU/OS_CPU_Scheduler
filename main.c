@@ -69,6 +69,7 @@ void sort_BurstTime(Process *process); // #15 Burst time에 대해서 sort
 void Run_FCFS(Process *process); // #12
 void Run_P_Priority(Process *process); // #14
 void Run_NP_Priority(Process *process); // #13
+void Run_RR(Queue *queue, int time_quantum); // #17
 
 int CheckOtherPTime(Process *process, int current_index, int time); // #14-1
 
@@ -97,10 +98,9 @@ int main(){
 	Queue jobQueue;// ,copiedQueue;
 	
 	InitQueue(&jobQueue);
-	//InitQueue(&copiedQueue);
 	
 	Process *process;
-	process = CreateProcess(&jobQueue);
+	process = CreateProcess(&jobQueue); // 프로세스를 만들어서 jobQueue에 집어넣음
 	
 	numOfProcess = jobQueue.count; // 생성된 프로세스의 개수 값 저장 
 	
@@ -117,10 +117,63 @@ int main(){
 * #17
 *
 * Round Robin Scheduling 
-*
+* 
+* FCFS의 형태를 살짝 변경해보자
 *
 */
-
+void Run_RR(Queue *queue, int time_quantum){
+	int i, time = 0; // 전체 진행 시간 
+	int stop = 0;
+	
+	int gant_chart[100] = {0, };
+	
+	Process temp_process;
+	Queue terminateQueue;
+	
+	InitQueue(&terminateQueue);
+	
+	printf("\n");
+	
+	while(terminateQueue.count != numOfProcess){
+		
+		//if(stop == 0){ // time이 0일 때만 적용됨. 
+			temp_process = Dequeue(queue_RR);
+		//}
+			
+			
+		if(temp_process.ArrivalTime <= time){
+				
+			if(temp_process.BurstTimeCPU > 0){
+				temp_process.BurstTimeCPU -= time_quantum;
+				time += time_quantum; // 다른 알고리즘과 다른 time 증가
+				
+				// 위의 실행 결과, process의 BT가 0 이하가 되었을 때 바로 terminate Queue로!
+				if(temp_process.BurstTimeCPU <= 0){
+					temp_process.BurstTimeCPU = 0; // 음수 값일 수도 있으니까! (남은 bt보다 tq가 더 큰 경우)
+					Enqueue(terminateQueue, temp_process); // 다 끝난 프로세스를 terminate Queue로!
+				
+					printf("process(PID : %d) has finished! \n", temp_process.PID); // for debugging
+				}	
+				
+				//Enqueue(queue_RR, temp_process);
+			
+			/*		
+			}else{ // Burst Time 끝난 경우
+				temp_process.BurstTimeCPU = 0; // 음수 값일 수도 있으니까! (남은 bt보다 tq가 더 큰 경우)
+				Enqueue(terminateQueue, temp_process); // 다 끝난 프로세스를 terminate Queue로!
+				
+				printf("process(PID : %d) has finished! \n", temp_process.PID); // for debugging
+				*/
+			}
+				
+		}else{ // 
+			time = temp_process.ArrivalTime;
+			//stop = 1;
+			// TODO : arrival time 크기만큼 for문 돌려서 gant차트 배열에 71(NULL) 집어넣기
+		}
+		
+	}	
+}
 
 
 
@@ -562,7 +615,7 @@ void Run_FCFS(Process *process){
 */
 void PrintMenu(Queue *queue){
 	int select_mode, i;
-	int numOfProcess = queue->count;
+	int time_quantum; // for Round Robin Scheduling Algorithm
 	
 	printf("Now you made processes.\nSo, What algorithm you want to apply?\n\n");
 	
@@ -620,13 +673,17 @@ void PrintMenu(Queue *queue){
 			Run_P_Priority(process_P_Priority); // TODO 
 			
 			break;
-			
+		
+		// Round Robin	
 		case 6:	
-			// TODO : Round Robin
 			
+			printf("Enter the time quantum of Round Robin Scheduling Algorithm! :");
+			scanf("%d", &time_quantum);
+			
+			sort_Arrival_Time(process_RR); // AT 기준으로 정렬된 프로세스를 큐에 넣어서 사용하기 위해 copy2queue 이전에 실행
 			CopyProcess2Queue(&queue_RR, process_RR);
-			//sort_Arrival_Time(process_RR);
-			//Run_RR(process_RR);
+			
+			Run_RR(queue_RR, time_quantum);
 			
 			break;
 			

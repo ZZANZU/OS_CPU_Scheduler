@@ -127,7 +127,7 @@ void Run_RR(Queue *queue, int time_quantum){
 	
 	int gant_chart[100] = {0, };
 	
-	Process temp_process;
+	Process *temp_process;
 	Queue terminateQueue;
 	
 	InitQueue(&terminateQueue);
@@ -137,44 +137,44 @@ void Run_RR(Queue *queue, int time_quantum){
 	
 	while(terminateQueue.count != numOfProcess){
 		
-		temp_process = *Dequeue(queue);
+		temp_process = Dequeue(queue);
 		
 		if(stop == 0){ // while문 처음에만 실행됨.
 
-			time = temp_process.ArrivalTime;
+			time = temp_process->ArrivalTime;
 			// TODO : arrival time 크기만큼 for문 돌려서 gant차트 배열에 71(NULL) 집어넣기
-			printf("process(PID : %d) dequeued!\n", temp_process.PID); // for debugging	
+			printf("process(PID : %d) dequeued!\n", temp_process->PID); // for debugging	
 			printf("initial time : %d\n", time); // for debugging
 			
 			stop = 1;
 		}
 		
-		if(temp_process.ArrivalTime <= time && temp_process.BurstTimeCPU > 0){
-			printf("process(PID : %d) dequeued!\n", temp_process.PID); // for debugging	
+		if(temp_process->ArrivalTime <= time && temp_process->BurstTimeCPU > 0){
+			printf("process(PID : %d) dequeued!\n", temp_process->PID); // for debugging	
 			
-			temp_process.BurstTimeCPU -= time_quantum;
+			temp_process->BurstTimeCPU -= time_quantum;
 			
 			time += time_quantum; // 다른 알고리즘과 다른 time 증가
 			printf("time increased to %d\n", time); // for debugging
 				
 			// 위의 실행 결과, process의 BT가 0 이하가 되었을 때 바로 terminate Queue로!
-			if(temp_process.BurstTimeCPU <= 0){
+			if(temp_process->BurstTimeCPU <= 0){
 				// ex) temp_process 의 남은 BT가 2인데 tq가 4 -> BT가 -2되고 time은 4 증가 (x) / time은 2만 증가되는게 맞음
-				time += temp_process.BurstTimeCPU; // time값을 tq만큼 증가시키는게 아니라 남아있던 BT만큼만 증가시켜야하기 때문에 초과로 높아진 time을 다시 낮춰줌
+				time += temp_process->BurstTimeCPU; // time값을 tq만큼 증가시키는게 아니라 남아있던 BT만큼만 증가시켜야하기 때문에 초과로 높아진 time을 다시 낮춰줌
 				
-				temp_process.BurstTimeCPU = 0; // 음수 값일 수도 있으니까! (남은 bt보다 tq가 더 큰 경우)
+				temp_process->BurstTimeCPU = 0; // 음수 값일 수도 있으니까! (남은 bt보다 tq가 더 큰 경우)
 				
-				Enqueue(&terminateQueue, &temp_process); // 다 끝난 프로세스를 terminate Queue로!
+				Enqueue(&terminateQueue, temp_process); // 다 끝난 프로세스를 terminate Queue로!
 				
-				printf("process(PID : %d) has finished! \n", temp_process.PID); // for debugging
+				printf("process(PID : %d) has finished! \n", temp_process->PID); // for debugging
 				printf("terminateQueue.count : %d\n", terminateQueue.count);
 					
 				printf("after the process finished, the time is %d\n", time); // for debugging
 				
 			}else{ // 아직 프로세스의 BT가 남아있을 경우 
 				
-				Enqueue(queue, &temp_process); // 다시 queue에 넣어준다. ★★★★여기에 문제있는듯
-				printf("process(PID : %d) is enqueued again! BurstTime : %d\n", temp_process.PID, temp_process.BurstTimeCPU);
+				Enqueue(queue, temp_process); // 다시 queue에 넣어준다. ★★★★여기에 문제있는듯
+				printf("process(PID : %d) is enqueued again! BurstTime : %d\n", temp_process->PID, temp_process->BurstTimeCPU);
 				printf("count of the queue : %d\n\n", queue->count);
 				
 			}
@@ -874,6 +874,7 @@ Process* Dequeue(Queue *queue){
 	Node *now = (Node*)malloc(sizeof(Process));//
 	
 	if(IsQueueEmpty(queue)){
+		//printf("queue is empty!\n");
 		return returnNode;
 	}
 	

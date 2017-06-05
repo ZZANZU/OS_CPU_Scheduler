@@ -1,3 +1,181 @@
 `17 Korea Univ OS term project
 
 by Chan Joo Lee
+
+★★★★★★★★★170528(일)
+
+- 스케줄링 알고리즘마다 해당하는 큐를 만들고,
+- 그 큐는 해당 스케줄링 알고리즘의 기준에 적합하게 정렬된 'ordered' 큐이다.
+
+1) First Come First Served
+: Arrival Time을 기준으로 sort한다.
+
+- running 도중 interrupt 발생시 해당 프로세스를 waiting queue에 enqueue하고, 
+- ready 상태에 있던 프로세스를 ready queue에서 dequeue한다.
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★170529(월)
+
+- 복사 완료한 프로세스들을 각각의 큐에 집어넣는 함수 //OK
+- 그러한 큐의 데이터들을 일정 규칙에 따라 sort하는 함수 // FCFS, NP_Priority 
+- 헤더파일과 코드 파일을 잘 나누어보기(인터넷 자료 참고) // 추후에 작업하기로 미룸.
+
+- 오후 작업 해야할 내용
+: 각 스케줄링 알고리즘 - 큐들 생성 후, sorting (영훈이형 보고서 참고)
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★170530(화)
+1. CopyProcess(Queue *queue, Process *process);
+- process들을 queue에 집어넣음
+
+2. int numOfProcess 
+- 전역변수화 시킴
+- 랜덤 생성한 프로세스들의 개수를 저장함.
+- ShowProcess에서 queue를 따로 인자값으로 받지 않아도 됨!
+
+3. NP_Priority 함수
+- 테스트 printf문 제거
+- Priority값이 작을수록 우선순위가 높은 것이기 때문에 sort 부등호 방향 반대로 바꿈.
+
+4. algorithm_FCFS, algorithm_NP_Priority 함수가 sort의 역할만을 하기 때문에
+- sort_FCFS, sort_NP_Priority로 rename.
+
+5. sorting하는 함수를 스케줄링 함수 내부에 배치
+- sort_ArrivalTime()함수를 Run_FCFS함수 내부로.
+
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★170601(목)
+1. Run_NP_Priority(Process *process) 구현 완료!
+- terminateQueue 개념 등장
+  : 추후에 waiting queue도 구현할 예정.
+
+- time값 정확히 구현하는데 ㅈㄴ 에너지 쏟음...
+  : 이걸로 간트차트의 x좌표 표현할 수 있기 때문에(아마?) 중요하다!
+
+- Preemptive Priority Scheduling 과정 다시한번 remind!
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★170603(토)
+1. Preemptive Priority Scheduling 잠정 중단
+- 그러면 Preemptive SJF Scheduling도 못하지 않나...
+
+2. SJF Scheduling 
+- sort_by_BurstTime
+- Burst time으로 sort했을 때, Arrival time도 고려해야함!
+- ★★ Burst time이 같은 것들 중에서도 Arrival time을 기준으로도 sort되도록하는 함수짜야됨.
+: 중복이 2개일 때는 해결했는데, 그 이상일 때도 해결할 수 있는 방법은 ㅠㅠ?
+- 간트 차트 출력 (따로 함수를 만들진 않음)
+
+3. NP_Priority()
+- 간트 차트 출력 추가(따로 함수를 만들진 않음)
+
+4. FCFS Scheduling 업데이트
+- terminateQueue 개념을 도입한 방법으로 변경하기
+
+5. Round Robin(아직 안함)
+- 긍정적인 마음을 가지자
+- Arrival time 기준으로 sort하기
+- Run_RR 생성 
+
+6. Evaluation 기능 구현
+- 스케줄링 알고리즘 다 짜고나서 구현하려고 했는데
+- 그러면 나중에 돌이킬 수 없을 정도로 이상한 코드가 될까봐
+- 스케줄링 알고리즘 지금까지 짠 것들에부터 구현 
+
+- ShowProcess()에 프로세스의 Waiting Time값들도 출력 되도록 
+ & Average Waitig Time 출력
+ 
+7. (Average) Waiting Time & (Average) Turnaround Time
+- Process 구조체에 데이터 추가 선언
+: WaitingTime, TurnaroundTime -> CreateProcess(), ShowProcess() 수정(추가)
+
+8. FCFS, NP_SJF, NP_Priority 완성(잠정)
+
+9. ★★나는 왜 CopyProcess2Queue를 하는가?
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★170604(일)
+
+1. Run_RR(Process *process)
+- FCFS의 형태를 조금만 변경하면 되지 않을까?
+
+- Ready Queue를 진짜 활용해야겠는데?
+- Arrival time으로 정렬한 뒤에 Dequeue해서 타임 퀀텀만큼 줄이고 Enqueue, 
+  그 다음 프로세스를 Dequeue해서 타임 퀀텀만큼 줄이고 Enqueue,
+ 그러다가 프로세스의 BurstTime이 0이하가 되면 terminate Queue로 보내고,
+terminate Queue의 count가 numOfProcess가 되면 끝 
+
+- request Queue에 넣기 : 하...그냥 쌩까고 FCFS처럼 할까...
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★170605(월)
+
+1. Run_RR 수정
+- Enqueue, Dequeue 과정의 오류 or 포인터 잘못 사용한 함수 정의  => 어느게 문제일까?
+
+
+
+-----------------------------------------------------------------------------------------------------------
+★★★★★★★★★추후 작업하면 좋을 것 같은 것
+
+1. PID가 똑같은 값이 생성되면 에러를 발생시키면서 다시 실행되도록.
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★주의사항
+1. 각 알고리즘에 사용될 프로세스들을 복사 완료하고 난 후에 PrintMenu( ) 실행하기.
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★함수 목록
+
+1. void Enqueue(Queue *queue, Process *process)
+- 프로세스를 큐에 집어넣음
+
+2. Process* Dequeue(Queue *queue)
+- 주어진 큐의 front(process 구조체)를 리턴한다.
+
+3. int IsQueueEmpty(Queue *queue)
+- 주어진 큐가 비었으면 1, 비어있지 않다면 0을 리턴
+
+4. void InitQueue(Queue *queue);
+- 주어진 큐를 초기화(front와 rear가 같은 곳을 포인팅)
+
+5. Process* CreateProcess(Queue *queue)
+- 랜덤 개수(numOfProcess)만큼의 프로세스 구조체를 생성한 뒤 
+- 주어진 큐에 enqueue하여
+- 생성된 프로세스들을 리턴 // 이부분이 조금 찝찝함...
+
+6. void CopyProcess(Process *process);
+- 주어진 프로세스들을 각 스케줄링 알고리즘에 해당하는 프로세스(전역)에 저장
+- 구조체간의 대입연산 사용
+
+7. void CopyProcess2Queue(Queue *queue, Process *process)
+- 주어진 process를 주어진 queue에 enqueue
+- CopyProcess(Process *process)와 헷갈리지 말기.
+
+8. void ShowProcess(Process *process)
+- 주어진 큐에서 count값(== 프로세스의 개수)을 이용하여
+- for문으로 프로세스의 원소 값들(PID, arrival time, etc)을 출력
+
+9. void PrintMenu(Queue* queue);
+- 스케줄링 알고리즘을 고를 수 있게 메뉴 print
+- user가 원하는 스케줄링 알고리즘의 index를 입력받아서
+- 해당 알고리즘의 기준에 맞게 프로세스들을 정렬한 후
+- 프로세스들을 출력해서 보여줌
+
+10. void sort_FCFS(Process *process);
+- FCFS 스케줄링을 위해 주어진 프로세스들의 ArrivalTime을 기준으로 오름차순으로 정렬.
+
+11. void sort_NP_Priority(Process *process_NP_Priority);
+- Non-Preemptive Priority 스케줄링을 위해 주어진 프로세스들의 Priority를 기준으로 오름차순으로 정렬.
+
+12, void Run_FCFS(Process *process);
+- 우선 arrival time에 대해서 sort 한후(sort_arrival_time())

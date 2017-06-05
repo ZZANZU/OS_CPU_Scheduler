@@ -69,7 +69,7 @@ void sort_BurstTime(Process *process); // #15 Burst time에 대해서 sort
 void Run_FCFS(Process *process); // #12
 void Run_P_Priority(Process *process); // #14
 void Run_NP_Priority(Process *process); // #13
-void Run_RR(Queue *queue, int time_quantum); // #17
+void Run_RR(Queue queue, int time_quantum); // #17
 
 int CheckOtherPTime(Process *process, int current_index, int time); // #14-1
 
@@ -121,7 +121,7 @@ int main(){
 * FCFS의 형태를 살짝 변경해보자
 *
 */
-void Run_RR(Queue *queue, int time_quantum){
+void Run_RR(Queue queue, int time_quantum){
 	int i, time = 0; // 전체 진행 시간 
 	int stop = 0;
 	
@@ -132,45 +132,55 @@ void Run_RR(Queue *queue, int time_quantum){
 	
 	InitQueue(&terminateQueue);
 	
+	
 	printf("\n");
 	
 	while(terminateQueue.count != numOfProcess){
 		
-		//if(stop == 0){ // time이 0일 때만 적용됨. 
-			temp_process = Dequeue(queue_RR);
-		//}
+		temp_process = *Dequeue(&queue);
+		
+		if(stop == 0){ // while문 처음에만 실행됨.
+			time = temp_process.ArrivalTime;
+			// TODO : arrival time 크기만큼 for문 돌려서 gant차트 배열에 71(NULL) 집어넣기
+			printf("process(PID : %d) dequeued!\n", temp_process.PID); // for debugging	
+			printf("initial time : %d\n", time); // for debugging
 			
+			stop = 1;
+		}
+		
+		if(temp_process.ArrivalTime <= time && temp_process.BurstTimeCPU > 0){
+			printf("process(PID : %d) dequeued!\n", temp_process.PID); // for debugging	
 			
-		if(temp_process.ArrivalTime <= time){
-				
-			if(temp_process.BurstTimeCPU > 0){
-				temp_process.BurstTimeCPU -= time_quantum;
-				time += time_quantum; // 다른 알고리즘과 다른 time 증가
-				
-				// 위의 실행 결과, process의 BT가 0 이하가 되었을 때 바로 terminate Queue로!
-				if(temp_process.BurstTimeCPU <= 0){
-					temp_process.BurstTimeCPU = 0; // 음수 값일 수도 있으니까! (남은 bt보다 tq가 더 큰 경우)
-					Enqueue(terminateQueue, temp_process); // 다 끝난 프로세스를 terminate Queue로!
-				
-					printf("process(PID : %d) has finished! \n", temp_process.PID); // for debugging
-				}	
-				
-				//Enqueue(queue_RR, temp_process);
+			temp_process.BurstTimeCPU -= time_quantum;
 			
-			/*		
-			}else{ // Burst Time 끝난 경우
+			time += time_quantum; // 다른 알고리즘과 다른 time 증가
+			printf("time increased to %d\n", time); // for debugging
+				
+			// 위의 실행 결과, process의 BT가 0 이하가 되었을 때 바로 terminate Queue로!
+			if(temp_process.BurstTimeCPU <= 0){
+				// ex) temp_process 의 남은 BT가 2인데 tq가 4 -> BT가 -2되고 time은 4 증가 (x) / time은 2만 증가되는게 맞음
+				time += temp_process.BurstTimeCPU; // time값을 tq만큼 증가시키는게 아니라 남아있던 BT만큼만 증가시켜야하기 때문에 초과로 높아진 time을 다시 낮춰줌
+				
 				temp_process.BurstTimeCPU = 0; // 음수 값일 수도 있으니까! (남은 bt보다 tq가 더 큰 경우)
-				Enqueue(terminateQueue, temp_process); // 다 끝난 프로세스를 terminate Queue로!
+				
+				Enqueue(&terminateQueue, &temp_process); // 다 끝난 프로세스를 terminate Queue로!
 				
 				printf("process(PID : %d) has finished! \n", temp_process.PID); // for debugging
-				*/
-			}
+				printf("terminateQueue.count : %d\n", terminateQueue.count);
+					
+				printf("after the process finished, the time is %d\n", time); // for debugging
 				
-		}else{ // 
-			time = temp_process.ArrivalTime;
-			//stop = 1;
-			// TODO : arrival time 크기만큼 for문 돌려서 gant차트 배열에 71(NULL) 집어넣기
+			}else{ // 아직 프로세스의 BT가 남아있을 경우 
+				
+				Enqueue(&queue, &temp_process); // 다시 queue에 넣어준다. ★★★★여기에 문제있는듯
+				printf("process(PID : %d) is enqueued again! BurstTime : %d\n", temp_process.PID, temp_process.BurstTimeCPU);
+				printf("count of the queue : %d\n\n", queue.count);
+				
+			}
 		}
+		
+		// 마지막 프로세스가 종료될때까지 실행되네...
+		//printf("debugging for the end WTF\n");
 		
 	}	
 }
@@ -852,7 +862,12 @@ void Enqueue(Queue *queue, Process *process){
 	queue->count++;
 }
 
-// #2
+/* #2
+*
+*
+* front에서 나감
+*
+*/
 Process* Dequeue(Queue *queue){
 	Process *returnNode;
 	Node *now = (Node*)malloc(sizeof(Process));//
@@ -868,6 +883,7 @@ Process* Dequeue(Queue *queue){
 	queue->count--;
 	
 	free(now);//
+	
 	return returnNode;
 }
 

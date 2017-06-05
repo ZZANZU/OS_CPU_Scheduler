@@ -69,7 +69,7 @@ void sort_BurstTime(Process *process); // #15 Burst time에 대해서 sort
 void Run_FCFS(Process *process); // #12
 void Run_P_Priority(Process *process); // #14
 void Run_NP_Priority(Process *process); // #13
-void Run_RR(Queue queue, int time_quantum); // #17
+void Run_RR(Queue *queue, int time_quantum); // #17
 
 int CheckOtherPTime(Process *process, int current_index, int time); // #14-1
 
@@ -121,7 +121,7 @@ int main(){
 * FCFS의 형태를 살짝 변경해보자
 *
 */
-void Run_RR(Queue queue, int time_quantum){
+void Run_RR(Queue *queue, int time_quantum){
 	int i, time = 0; // 전체 진행 시간 
 	int stop = 0;
 	
@@ -137,9 +137,10 @@ void Run_RR(Queue queue, int time_quantum){
 	
 	while(terminateQueue.count != numOfProcess){
 		
-		temp_process = *Dequeue(&queue);
+		temp_process = *Dequeue(queue);
 		
 		if(stop == 0){ // while문 처음에만 실행됨.
+
 			time = temp_process.ArrivalTime;
 			// TODO : arrival time 크기만큼 for문 돌려서 gant차트 배열에 71(NULL) 집어넣기
 			printf("process(PID : %d) dequeued!\n", temp_process.PID); // for debugging	
@@ -172,9 +173,9 @@ void Run_RR(Queue queue, int time_quantum){
 				
 			}else{ // 아직 프로세스의 BT가 남아있을 경우 
 				
-				Enqueue(&queue, &temp_process); // 다시 queue에 넣어준다. ★★★★여기에 문제있는듯
+				Enqueue(queue, &temp_process); // 다시 queue에 넣어준다. ★★★★여기에 문제있는듯
 				printf("process(PID : %d) is enqueued again! BurstTime : %d\n", temp_process.PID, temp_process.BurstTimeCPU);
-				printf("count of the queue : %d\n\n", queue.count);
+				printf("count of the queue : %d\n\n", queue->count);
 				
 			}
 		}
@@ -693,7 +694,7 @@ void PrintMenu(Queue *queue){
 			sort_Arrival_Time(process_RR); // AT 기준으로 정렬된 프로세스를 큐에 넣어서 사용하기 위해 copy2queue 이전에 실행
 			CopyProcess2Queue(&queue_RR, process_RR);
 			
-			Run_RR(queue_RR, time_quantum);
+			Run_RR(&queue_RR, time_quantum);
 			
 			break;
 			

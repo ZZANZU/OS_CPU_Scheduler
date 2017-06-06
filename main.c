@@ -42,7 +42,7 @@ typedef struct Queue{
 
 
 int numOfProcess; // 랜덤하게 생성된 프로세스들의 개수를 저장. 
-
+int sumOfBurstTime; // 프로세스들의 CPU burst time의 합. 
 
 
 /*---------------------------------------------------*/
@@ -118,8 +118,9 @@ int main(){
 *
 * Round Robin Scheduling 
 * 
-* FCFS의 형태를 살짝 변경해보자
+* @param : queue - 프로세스가 담겨진 큐, time_quantum - time slice 
 *
+* finally did...!
 */
 void Run_RR(Queue *queue, int time_quantum){
 	int i, time = 0; // 전체 진행 시간 
@@ -128,10 +129,9 @@ void Run_RR(Queue *queue, int time_quantum){
 	int gant_chart[100] = {0, };
 	
 	Process *temp_process;
+	
 	Queue terminateQueue;
-	
 	InitQueue(&terminateQueue);
-	
 	
 	printf("\n");
 	
@@ -142,11 +142,18 @@ void Run_RR(Queue *queue, int time_quantum){
 		if(stop == 0){ // while문 처음에만 실행됨.
 
 			time = temp_process->ArrivalTime;
-			// TODO : arrival time 크기만큼 for문 돌려서 gant차트 배열에 71(NULL) 집어넣기
+			
+			// for gant chart#1
+			for(i = 0 ; i < time ; i++){
+				gant_chart[i] = 71;
+			}
+			
 			printf("process(PID : %d) dequeued!\n", temp_process->PID); // for debugging	
 			printf("initial time : %d\n", time); // for debugging
 			
 			stop = 1;
+			
+			sumOfBurstTime += time; // 전제 진행 시간 = 첫 프로세스의 Arrival time + 전체 프로세스들의 BT 
 		}
 		
 		if(temp_process->ArrivalTime <= time && temp_process->BurstTimeCPU > 0){
@@ -154,7 +161,17 @@ void Run_RR(Queue *queue, int time_quantum){
 			
 			temp_process->BurstTimeCPU -= time_quantum;
 			
+			// for gant chart#2
+			for(i = time ; i < time+time_quantum ; i++){
+				if(time + time_quantum > sumOfBurstTime && temp_process->BurstTimeCPU <= 0){
+					gant_chart[i] = temp_process->PID;
+					break; 
+				}
+				gant_chart[i] = temp_process->PID;
+			}
+			
 			time += time_quantum; // 다른 알고리즘과 다른 time 증가
+			
 			printf("time increased to %d\n", time); // for debugging
 				
 			// 위의 실행 결과, process의 BT가 0 이하가 되었을 때 바로 terminate Queue로!
@@ -162,7 +179,13 @@ void Run_RR(Queue *queue, int time_quantum){
 				// ex) temp_process 의 남은 BT가 2인데 tq가 4 -> BT가 -2되고 time은 4 증가 (x) / time은 2만 증가되는게 맞음
 				time += temp_process->BurstTimeCPU; // time값을 tq만큼 증가시키는게 아니라 남아있던 BT만큼만 증가시켜야하기 때문에 초과로 높아진 time을 다시 낮춰줌
 				
+				
+				
+				
 				temp_process->BurstTimeCPU = 0; // 음수 값일 수도 있으니까! (남은 bt보다 tq가 더 큰 경우)
+				
+				temp_process->TurnAroundTime = time - temp_process->ArrivalTime; // for TAT
+				temp_process->WaitingTime = temp_process->TurnAroundTime - temp_process->BurstTimeCPU; // for WT
 				
 				Enqueue(&terminateQueue, temp_process); // 다 끝난 프로세스를 terminate Queue로!
 				
@@ -173,17 +196,35 @@ void Run_RR(Queue *queue, int time_quantum){
 				
 			}else{ // 아직 프로세스의 BT가 남아있을 경우 
 				
-				Enqueue(queue, temp_process); // 다시 queue에 넣어준다. ★★★★여기에 문제있는듯
+				Enqueue(queue, temp_process);
 				printf("process(PID : %d) is enqueued again! BurstTime : %d\n", temp_process->PID, temp_process->BurstTimeCPU);
 				printf("count of the queue : %d\n\n", queue->count);
 				
 			}
 		}
-		
-		// 마지막 프로세스가 종료될때까지 실행되네...
-		//printf("debugging for the end WTF\n");
-		
-	}	
+	}
+	
+	// show process (queue -> process)
+	Process *showprocess;
+	
+	for(i = 0 ; i < numOfProcess ; i++){
+		showprocess[i] = *Dequeue(&terminateQueue);
+	}
+	ShowProcess(showprocess);	
+	
+	// 간트차트 출력
+	i = 0;
+	while(gant_chart[i] != '\0'){
+		printf("%2d|",gant_chart[i]);
+		i++;
+	}
+	printf("\n");
+	i = 0;
+	// 시간 x축 출력 
+	while(gant_chart[i] != '\0'){
+		printf("%2d|",i+1);
+		i++;
+	}
 }
 
 
@@ -797,6 +838,7 @@ void InitQueue(Queue *queue){
 */
 Process* CreateProcess(Queue *queue){
 	srand((unsigned int)time(NULL));
+	sumOfBurstTime = 0; 
 	int i;
 	
 	Process *process;
@@ -814,6 +856,8 @@ Process* CreateProcess(Queue *queue){
 		process[i].Priority = 1 + rand() % PRIORITY_MAX; // 중복을 피하기 위해 큰 숫자로 설정. 
 		process[i].WaitingTime = 0;
 		process[i].TurnAroundTime = 0;
+		
+		sumOfBurstTime += process[i].BurstTimeCPU;
 		
 		Enqueue(queue, &process[i]);
 	}

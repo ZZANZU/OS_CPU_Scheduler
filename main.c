@@ -23,9 +23,10 @@ typedef struct Process{
 	int ArrivalTime;
 	int BurstTimeCPU;
 	int BurstTimeIO;
-	short int Priority;
+	char Priority;
 	char WaitingTime; // 이렇게해야 priority가 튀는 값(딱 하나)이 없어짐. 
-	char TurnAroundTime;
+	int TurnAroundTime;
+	int bt;
 }Process;
 
 typedef struct Node{
@@ -69,9 +70,10 @@ void sort_BurstTime(Process *process); // #15 Burst time에 대해서 sort
 void Run_FCFS(Process *process); // #12
 void Run_P_Priority(Process *process); // #14
 void Run_NP_Priority(Process *process); // #13
-void Run_RR(Queue *queue, int time_quantum); // #17
+void Run_RR(Queue *queue, int time_quantum, Process *process); // #17
 
 int CheckOtherPTime(Process *process, int current_index, int time); // #14-1
+
 
 /*---------------------------------------------------*/
 
@@ -113,6 +115,7 @@ int main(){
 
 /*---------------------------------------------------*/
 
+
 /*
 * #17
 *
@@ -122,7 +125,7 @@ int main(){
 *
 * finally did...!
 */
-void Run_RR(Queue *queue, int time_quantum){
+void Run_RR(Queue *queue, int time_quantum, Process *process){
 	int i, time = 0; // 전체 진행 시간 
 	int stop = 0;
 	
@@ -148,8 +151,8 @@ void Run_RR(Queue *queue, int time_quantum){
 				gant_chart[i] = 71;
 			}
 			
-			printf("process(PID : %d) dequeued!\n", temp_process->PID); // for debugging	
-			printf("initial time : %d\n", time); // for debugging
+			// printf("process(PID : %d) dequeued!\n", temp_process->PID); // for debugging	
+			// printf("initial time : %d\n", time); // for debugging
 			
 			stop = 1;
 			
@@ -157,7 +160,7 @@ void Run_RR(Queue *queue, int time_quantum){
 		}
 		
 		if(temp_process->ArrivalTime <= time && temp_process->BurstTimeCPU > 0){
-			printf("process(PID : %d) dequeued!\n", temp_process->PID); // for debugging	
+			// printf("process(PID : %d) dequeued!\n", temp_process->PID); // for debugging	
 			
 			temp_process->BurstTimeCPU -= time_quantum;
 			
@@ -172,33 +175,30 @@ void Run_RR(Queue *queue, int time_quantum){
 			
 			time += time_quantum; // 다른 알고리즘과 다른 time 증가
 			
-			printf("time increased to %d\n", time); // for debugging
+			// printf("time increased to %d\n", time); // for debugging
 				
 			// 위의 실행 결과, process의 BT가 0 이하가 되었을 때 바로 terminate Queue로!
 			if(temp_process->BurstTimeCPU <= 0){
 				// ex) temp_process 의 남은 BT가 2인데 tq가 4 -> BT가 -2되고 time은 4 증가 (x) / time은 2만 증가되는게 맞음
 				time += temp_process->BurstTimeCPU; // time값을 tq만큼 증가시키는게 아니라 남아있던 BT만큼만 증가시켜야하기 때문에 초과로 높아진 time을 다시 낮춰줌
 				
-				
-				
-				
 				temp_process->BurstTimeCPU = 0; // 음수 값일 수도 있으니까! (남은 bt보다 tq가 더 큰 경우)
 				
 				temp_process->TurnAroundTime = time - temp_process->ArrivalTime; // for TAT
-				temp_process->WaitingTime = temp_process->TurnAroundTime - temp_process->BurstTimeCPU; // for WT
+				temp_process->WaitingTime = temp_process->TurnAroundTime - temp_process->bt; // for WT
 				
 				Enqueue(&terminateQueue, temp_process); // 다 끝난 프로세스를 terminate Queue로!
 				
-				printf("process(PID : %d) has finished! \n", temp_process->PID); // for debugging
-				printf("terminateQueue.count : %d\n", terminateQueue.count);
+				// printf("process(PID : %d) has finished! \n", temp_process->PID); // for debugging
+				// printf("terminateQueue.count : %d\n", terminateQueue.count);
 					
 				printf("after the process finished, the time is %d\n", time); // for debugging
 				
 			}else{ // 아직 프로세스의 BT가 남아있을 경우 
 				
 				Enqueue(queue, temp_process);
-				printf("process(PID : %d) is enqueued again! BurstTime : %d\n", temp_process->PID, temp_process->BurstTimeCPU);
-				printf("count of the queue : %d\n\n", queue->count);
+				// printf("process(PID : %d) is enqueued again! BurstTime : %d\n", temp_process->PID, temp_process->BurstTimeCPU);
+				// printf("count of the queue : %d\n\n", queue->count);
 				
 			}
 		}
@@ -210,7 +210,8 @@ void Run_RR(Queue *queue, int time_quantum){
 	for(i = 0 ; i < numOfProcess ; i++){
 		showprocess[i] = *Dequeue(&terminateQueue);
 	}
-	ShowProcess(showprocess);	
+	
+	sort_Arrival_Time(showprocess); // 뒤죽박죽인 terminateQueue의 프로세스들을 정렬한 뒤 출력 
 	
 	// 간트차트 출력
 	i = 0;
@@ -225,6 +226,19 @@ void Run_RR(Queue *queue, int time_quantum){
 		printf("%2d|",i+1);
 		i++;
 	}
+	
+	printf("\n");
+	
+	// Evaluation
+	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
+	float tat = 0;
+	for(i = 0 ; i < numOfProcess ; i++){
+//		awt += showprocess[i].WaitingTime;
+		tat += showprocess[i].TurnAroundTime;
+	}
+	awt = (tat - sumOfBurstTime);
+	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
+	printf("Average Turnaround time : %f\n", tat/numOfProcess);
 }
 
 
@@ -733,9 +747,9 @@ void PrintMenu(Queue *queue){
 			scanf("%d", &time_quantum);
 			
 			sort_Arrival_Time(process_RR); // AT 기준으로 정렬된 프로세스를 큐에 넣어서 사용하기 위해 copy2queue 이전에 실행
-			CopyProcess2Queue(&queue_RR, process_RR);
-			
-			Run_RR(&queue_RR, time_quantum);
+			CopyProcess2Queue(&queue_RR, process_RR);	
+				
+			Run_RR(&queue_RR, time_quantum, process_RR);
 			
 			break;
 			
@@ -758,7 +772,6 @@ void CopyProcess2Queue(Queue *queue, Process *process){
 	for(i = 0 ; i < numOfProcess ; i++){
 		Enqueue(queue, &process[i]);
 	}
-	
 }
 
 /*
@@ -856,6 +869,7 @@ Process* CreateProcess(Queue *queue){
 		process[i].Priority = 1 + rand() % PRIORITY_MAX; // 중복을 피하기 위해 큰 숫자로 설정. 
 		process[i].WaitingTime = 0;
 		process[i].TurnAroundTime = 0;
+		process[i].bt = process[i].BurstTimeCPU;
 		
 		sumOfBurstTime += process[i].BurstTimeCPU;
 		

@@ -1,7 +1,3 @@
-`17 Korea Univ OS term project
-
-by Chan Joo Lee
-
 ★★★★★★★★★170528(일)
 
 - 스케줄링 알고리즘마다 해당하는 큐를 만들고,
@@ -119,9 +115,38 @@ terminate Queue의 count가 numOfProcess가 되면 끝
 
 1. Run_RR 수정
 - Enqueue, Dequeue 과정의 오류 or 포인터 잘못 사용한 함수 정의  => 어느게 문제일까?
+- queue를 인자로 받는게 아니라 queue의 front
 
+- 구조체 재정의
+: Node 구조체가 굳이 필요한가? 차라리 Process 구조체로 합치는게 낫지 않을까?
+=> 안함
 
+2. Run_RR 수정완료! 엉엉 ㅠㅠㅠㅠ temp_process를 Process*로 선언하고 사용할 때 time_process->@#$ 이렇게.
 
+3. Round Robin에서 AWT, TAT 구현
+- 기존 방법과 달라서 은근 까다롭네...
+
+-----------------------------------------------------------------------------------------------------------
+
+★★★★★★★★★170606(화)
+1. int 타입의 sumOfBurstTime 추가
+: RR에서 간트차트의 마지막부분에 burst time을 넘어선 범위의 출력을 방지하기 위해!
+: CreateProcess()에서 계산.  
+
+2. Round Robin에서 간트 차트 구현
+: 어쩌다보니까 됨... 진짜 어쩌다 보니까...감사합니다...지져스크라이스트...
+
+3. Round Robin에서 Waiting time 구현
+: WT = TAT - BT; 
+// BT를 알아내려면 프로세스의 operation이 진행되기 이전의 것을 찾아와야
+// 어떤 프로세스인지도 알아내어야(PID로? index로?)
+
+- 함수를 만들까?
+: temp_process를 받아서 그것과 PID가 같은 원래 프로세스의 Burst time을 리턴하도록?
+: 그러긴 싫은데... 함수 많아지면 안좋을것같은데....
+: process_RR의 burst time을 사용하려는데 왜 다 0이 된거지?ㅠㅠ
+=> 결국엔 총 Waiting time은 Turnaround time의 합에서 CPU Burst time의 총합을 뺀 것과 같다는 공식을 사용함
+:  awt = (tat - sumOfBurstTime);
 -----------------------------------------------------------------------------------------------------------
 ★★★★★★★★★추후 작업하면 좋을 것 같은 것
 

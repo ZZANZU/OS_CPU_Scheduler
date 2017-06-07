@@ -368,21 +368,26 @@ void sort_BurstTime(Process *process){
 * #14-1
 *
 * Queue를 다시 Process의 배열로 바꿈. 
-*
+* 프로세스 개수 번만큼  
+* temp_process에 Dequeue를 한 뒤 할당하는 방식 
 *
 */
 void CopyQueue2Process(Queue *queue, Process *process){
 	int i;
+	Process *temp_process;
+	temp_process = (Process*)malloc(sizeof(Process));
 	
 	for(i = 0 ; i < numOfProcess ; i++){
-		printf("wow\n");
-		process[i].PID = Dequeue(queue)->PID; // 그럼 인자로 받은 큐는 빈깡통이 되겠군... 
-		process[i].BurstTimeCPU = Dequeue(queue)->BurstTimeCPU;
-		process[i].BurstTimeIO = Dequeue(queue)->BurstTimeIO;
-		process[i].Priority = Dequeue(queue)->Priority;
-		process[i].WaitingTime = Dequeue(queue)->WaitingTime;
-		process[i].TurnAroundTime = Dequeue(queue)->TurnAroundTime;
-		process[i].bt = 0;
+		temp_process = Dequeue(queue);
+		
+		process[i].PID = temp_process->PID; // 그럼 인자로 받은 큐는 빈깡통이 되겠군... 
+		process[i].ArrivalTime = temp_process->ArrivalTime; 
+		process[i].BurstTimeCPU = temp_process->BurstTimeCPU;
+		process[i].BurstTimeIO = temp_process->BurstTimeIO;
+		process[i].Priority = temp_process->Priority;
+		process[i].WaitingTime = temp_process->WaitingTime;
+		process[i].TurnAroundTime = temp_process->TurnAroundTime;
+		process[i].bt = temp_process->BurstTimeCPU;// 보관용(?) Burst Time
 	}
 	
 	return;
@@ -414,8 +419,8 @@ void Run_P_Priority(Queue *queue){
 	printf("\n");
 	
 	while(terminateQueue.count != numOfProcess){
-		// TODO : Preemptive Priority Sceduling algorithm
-		printf("todo\n");
+//		TODO : Preemptive Priority Sceduling algorithm
+//		printf("todo\n");
 		break; 
 	} 	
 	

@@ -147,6 +147,14 @@ terminate Queue의 count가 numOfProcess가 되면 끝
 : process_RR의 burst time을 사용하려는데 왜 다 0이 된거지?ㅠㅠ
 => 결국엔 총 Waiting time은 Turnaround time의 합에서 CPU Burst time의 총합을 뺀 것과 같다는 공식을 사용함
 :  awt = (tat - sumOfBurstTime);
+
+4. Run_P_Priority(Queue *queue) 구현
+: 되라... 되라... 되라!
+: queue 받는걸로 바꿈.
+: 온전히 Queue방식으로만 할 수는 없을 것 같고, queue를 인자로 받되
+ queue를 다시 프로세스들의 집합(배열)으로 바꿔서 이전에 작성한
+다른 run함수처럼 작성해보는 건 어떨까?
+=> copyQueue2Process(Queue *queue);
 -----------------------------------------------------------------------------------------------------------
 ★★★★★★★★★추후 작업하면 좋을 것 같은 것
 

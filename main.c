@@ -10,7 +10,7 @@
 #include<stdlib.h>
 #include<time.h>
 
-#define PROCESS_NUM_MAX 11; // the number of processes should be under 15.
+#define PROCESS_NUM_MAX 10; // the number of processes should be under 15.
 #define BURST_MAX 8; // the maximum burst time.
 #define QUEUE_MAX 20;
 #define ARRIVAL_MAX 7;
@@ -26,7 +26,7 @@ typedef struct Process{
 	char Priority;
 	char WaitingTime; // 이렇게해야 priority가 튀는 값(딱 하나)이 없어짐. 
 	int TurnAroundTime;
-	int bt;
+	int bt; // CPU burst time을 저장, waiting time 구할 때 사용 
 }Process;
 
 typedef struct Node{
@@ -382,20 +382,11 @@ void CopyQueue2Process(Queue *queue, Process *process){
 	int i;
 	
 	Process *temp_process;
-	temp_process = (Process*)malloc(sizeof(Process));
+	//temp_process = (Process*)malloc(sizeof(Process));
 	
 	for(i = 0 ; i < numOfProcess ; i++){
 		temp_process = Dequeue(queue);
-		/*
-		process[i].PID = temp_process->PID; // 그럼 인자로 받은 큐는 빈깡통이 되겠군... 
-		process[i].ArrivalTime = temp_process->ArrivalTime; 
-		process[i].BurstTimeCPU = temp_process->BurstTimeCPU;
-		process[i].BurstTimeIO = temp_process->BurstTimeIO;
-		process[i].Priority = temp_process->Priority;
-		process[i].WaitingTime = temp_pr0ess->WaitingTime;
-		process[i].TurnAroundTime = temp_process->TurnAroundTime;
-		process[i].bt = temp_process->BurstTimeCPU;// 보관용(?) Burst Time
-		*/
+
 		process[i] = *temp_process;
 	}
 	
@@ -424,7 +415,7 @@ int CheckOtherPTime(Process *process, int current_index, int time){
 		// i를 0에서부터 증가시키며 프로세스를 체크하다가
 		// 현재 time보다 작은 arrival time의 프로세스를 찾으면
 		// 그 프로세스의 index를 return! 
-		printf("COPT_test\n");
+//		printf("COPT_test\n");
 		if(process[i].ArrivalTime <= time && process[i].BurstTimeCPU != 0){
 			if(i != current_index){ // 현재 프로세스보다 priority가 높은 다른 프로세스의 인덱스 발견! 
 				return i;
@@ -443,8 +434,8 @@ int CheckOtherPTime(Process *process, int current_index, int time){
 * 
 */
 void Run_P_Priority(Queue *queue){
-	int i, time = 0;
-	int check = 0;
+	int i, j, time = 0;
+//	int check = 0;
 	int stop = 0; 
 	
 	int gant_chart[100] = {0, };
@@ -455,42 +446,42 @@ void Run_P_Priority(Queue *queue){
 	CopyQueue2Process(queue, temp_process); // queue의 원소(프로세스)를 temp_process배열(?)로 만듬. 
 	
 	printf("\nshow process\n\n");
-	ShowProcess(temp_process);//debugging
-	sort_Priority(temp_process);
+//	ShowProcess(temp_process);//debugging
+//	sort_Priority(temp_process);
 	
 	Queue terminateQueue;
 	InitQueue(&terminateQueue);
 	
 	printf("\n");
 	
-	while(terminateQueue.count != numOfProcess){
-//		TODO : Preemptive Priority Sceduling algorithm
-		
+	while(terminateQueue.count != numOfProcess){	
 		stop = 0;
 		
 		for(int i = 0 ; i < numOfProcess ; i++){ // i값이 작을 수록 Priority가 높은 상황 
-			printf("test\n"); 
+
 			if(temp_process[i].ArrivalTime <= time && temp_process[i].BurstTimeCPU != 0){
-				printf("test2\n");	
+
 				while(temp_process[i].BurstTimeCPU != 0){
-					// TODO : 지금 받은 프로세스보다 Priority가 높고 Arrival time이 time보다 작은 것을 찾아보자. 
-					printf("test3\n");
+				// TODO : 지금 받은 프로세스보다 Priority가 높고 Arrival time이 time보다 작은 것을 찾아보자. 
+									
+					gant_chart[time] = temp_process[i].PID;
 					temp_process[i].BurstTimeCPU--;
+					
 					time++;
 					printf("while : time increased to %d\n", time);
 					
-					if(temp_process[i].BurstTimeCPU == 0){
-						goto start;
+					if(temp_process[i].BurstTimeCPU == 0){ // 프로세스 operation 끝나면, 
+						break;
 					}
 					
-					check = CheckOtherPTime(temp_process, i, time); // 실제로 time을 증가시키는 부분 이전에 나오도록?. 
-					
-					i = check;
-				}
+					i = CheckOtherPTime(temp_process, i, time); // 실제로 time을 증가시키는 부분 이전에 나오도록?. 
 				
-//				printf("temp_process[%d] finished!\n", i); // debug
-				start :	
+				}
+					temp_process[i].TurnAroundTime = time - temp_process[i].ArrivalTime;
+					temp_process[i].WaitingTime = temp_process[i].TurnAroundTime - temp_process[i].bt;
+					
 					Enqueue(&terminateQueue, &temp_process[i]);
+					printf("temp_process[%d] has been enqueued!\n", i);
 					stop = 1; 
 				
 					i = numOfProcess; 
@@ -498,7 +489,9 @@ void Run_P_Priority(Queue *queue){
 		}
 		
 		if(stop == 0){ // 모든 프로세스를 검사해보았지만 time보다 작은 Arrival Time이 없을 때
+			gant_chart[time] = 71;
 			time++; // enqueue이후에는 이부분이 실행되면 안됨. 
+			
 			printf("time increased to %d\n",time);
 		}
 	} 	
@@ -507,9 +500,23 @@ void Run_P_Priority(Queue *queue){
 	
 	printf("Preemptive Priority scheduling finished!\n\n");
 	
-	//ShowProcess(process);
+	ShowProcess(temp_process);
 	
 	printf("total running time : %d \n", time); 
+	
+	// 간트차트 출력
+	j = 0;
+	while(gant_chart[j] != '\0'){
+		printf("%2d|",gant_chart[j]);
+		j++;
+	}
+	printf("\n");
+	j = 0;
+	// 시간 x축 출력 
+	while(gant_chart[j] != '\0'){
+		printf("%2d|",j+1);
+		j++;
+	}
 }
 
 /*
@@ -765,11 +772,11 @@ void PrintMenu(Queue *queue){
 			
 			break;
 			
+		// Preemptive Priority
 		case 5:
-			// TODO : Preemptive Priority
+			
 			sort_Priority(process_P_Priority); // 여기선 어떻게 sort해야하지?
 			CopyProcess2Queue(&queue_P_Priority, process_P_Priority); // 정렬된 프로세스를 큐에 enqueue 
-						
 			Run_P_Priority(&queue_P_Priority); // TODO 
 			
 			break;
@@ -803,7 +810,7 @@ void PrintMenu(Queue *queue){
 void CopyProcess2Queue(Queue *queue, Process *process){
 	int i = 0;
 	
-	for(i = 0 ; i < numOfProcess+1 ; i++){ // i < numOfProcess + 1 로 수정하니까 CopyQueue2Process 정상 작동 
+	for(i = 0 ; i < numOfProcess + 1 ; i++){ // i < numOfProcess + 1 로 수정하니까 CopyQueue2Process 정상 작동 
 		Enqueue(queue, &process[i]);
 	}
 }

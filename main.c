@@ -10,9 +10,8 @@
 #include<stdlib.h>
 #include<time.h>
 
-#define PROCESS_NUM_MAX 10; // the number of processes should be under 15.
-#define BURST_MAX 8; // the maximum burst time.
-#define QUEUE_MAX 20;
+#define PROCESS_NUM_MAX 5; // the number of processes should be under 15.
+#define BURST_MAX 7; // the maximum burst time.
 #define ARRIVAL_MAX 7;
 #define PRIORITY_MAX 50;
 
@@ -71,6 +70,7 @@ void sort_BurstTime(Process *process); // #15 Burst time에 대해서 sort
 void Run_FCFS(Process *process); // #12
 void Run_P_Priority(Queue *queue); // #14
 void Run_NP_Priority(Process *process); // #13
+void Run_P_SJF(Queue *queue); // #18
 void Run_NP_SJF(Process *process); // #16
 void Run_RR(Queue *queue, int time_quantum, Process *process); // #17
 
@@ -98,6 +98,9 @@ Queue queue_FCFS,
 
 int main(){
 	int i;
+	int re = 1;
+	int stop = 0 ; // 메뉴를 처음 실행 했는지 안실행했는지 체크. 
+	
 	Queue jobQueue;// ,copiedQueue;
 	
 	InitQueue(&jobQueue);
@@ -110,12 +113,130 @@ int main(){
 	ShowProcess(process);
 	CopyProcess(process); // 랜덤하게 생성한 프로세스를 각 알고리즘에 해당하는 프로세스에 복사
 	
-	PrintMenu(&jobQueue); // 반드시 process가 각 알고리즘의 process에 copy 된 후에 실행 되어야!(삽질 ㅅㅂ) 
+	/*
+	while(re){
+		if(stop > 0){
+			CopyProcess(process);
+		}
+		
+		PrintMenu(&jobQueue); // 반드시 process가 각 알고리즘의 process에 copy 된 후에 실행 되어야!
+		
+		stop++; 
+		
+		printf("\ndo again?[1 - Yes/ 0 - No] : ");
+		scanf("%d", &re);
+	}
+	*/
+	
+	PrintMenu(&jobQueue);
 		
 }
 
 /*---------------------------------------------------*/
 
+/*
+* #18
+* 
+* Preemptive Shortest Job First 스케줄링 
+*  
+* 
+*/
+void Run_P_SJF(Queue *queue){
+	int i, j, time = 0;
+//	int check = 0;
+	int stop = 0; 
+	
+	int gant_chart[100] = {0, };
+	
+	Process *temp_process;
+//	temp_process = (Process*)malloc(sizeof(Process));
+	
+	CopyQueue2Process(queue, temp_process); // queue의 원소(프로세스)를 temp_process배열(?)로 만듬. 
+	
+	printf("\nshow process\n\n");
+//	ShowProcess(temp_process);//debugging
+//	sort_Priority(temp_process);
+	
+	Queue terminateQueue;
+	InitQueue(&terminateQueue);
+	
+	printf("\n");
+	
+	while(terminateQueue.count != numOfProcess){	
+		stop = 0;
+		
+		for(int i = 0 ; i < numOfProcess ; i++){ // i값이 작을 수록 Priority가 높은 상황 
+
+			if(temp_process[i].ArrivalTime <= time && temp_process[i].BurstTimeCPU != 0){
+
+				while(temp_process[i].BurstTimeCPU != 0){
+									
+					gant_chart[time] = temp_process[i].PID;
+					temp_process[i].BurstTimeCPU--;
+					
+					time++;
+					
+					if(temp_process[i].BurstTimeCPU == 0){ // 프로세스 operation 끝나면, 
+						break;
+					}
+					
+					i = CheckOtherPTime(temp_process, i, time); 
+				
+				}
+					temp_process[i].TurnAroundTime = time - temp_process[i].ArrivalTime;
+					temp_process[i].WaitingTime = temp_process[i].TurnAroundTime - temp_process[i].bt;
+					
+					Enqueue(&terminateQueue, &temp_process[i]);
+
+					stop = 1; 
+				
+					i = numOfProcess; 
+			}
+		}
+		
+		if(stop == 0){ // 모든 프로세스를 검사해보았지만 time보다 작은 Arrival Time이 없을 때
+			gant_chart[time] = 71;
+			time++; // enqueue이후에는 이부분이 실행되면 안됨. 
+			
+//			printf("time increased to %d\n",time);
+		}
+	} 	
+	
+	printf("\n");
+	
+	printf("Preemptive Priority scheduling finished!\n\n");
+	
+	ShowProcess(temp_process);
+	
+	printf("total running time : %d \n", time); 
+	
+	// 간트차트 출력
+	j = 0;
+	while(gant_chart[j] != '\0'){
+		printf("%2d|",gant_chart[j]);
+		j++;
+	}
+	printf("\n");
+	j = 0;
+	
+	// 시간 x축 출력 
+	while(gant_chart[j] != '\0'){
+		printf("%2d|",j+1);
+		j++;
+	}
+	
+	// Evaluation
+	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
+	float tat = 0;
+	/*
+	for(j = 0 ; j < numOfProcess ; j++){
+		awt += temp_process[j].WaitingTime;
+		tat += temp_process[j].TurnAroundTime;
+	}
+	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
+	printf("Average Turnaround time : %f\n", tat/numOfProcess);
+	*/
+}
 
 /*
 * #17
@@ -468,7 +589,7 @@ void Run_P_Priority(Queue *queue){
 					temp_process[i].BurstTimeCPU--;
 					
 					time++;
-					printf("while : time increased to %d\n", time);
+//					printf("while : time increased to %d\n", time);
 					
 					if(temp_process[i].BurstTimeCPU == 0){ // 프로세스 operation 끝나면, 
 						break;
@@ -481,7 +602,7 @@ void Run_P_Priority(Queue *queue){
 					temp_process[i].WaitingTime = temp_process[i].TurnAroundTime - temp_process[i].bt;
 					
 					Enqueue(&terminateQueue, &temp_process[i]);
-					printf("temp_process[%d] has been enqueued!\n", i);
+//					printf("temp_process[%d] has been enqueued!\n", i);
 					stop = 1; 
 				
 					i = numOfProcess; 
@@ -512,11 +633,24 @@ void Run_P_Priority(Queue *queue){
 	}
 	printf("\n");
 	j = 0;
+	
 	// 시간 x축 출력 
 	while(gant_chart[j] != '\0'){
 		printf("%2d|",j+1);
 		j++;
 	}
+	
+	// Evaluation
+	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
+	float tat = 0;
+	/*
+	for(j = 0 ; j < numOfProcess ; j++){
+		awt += temp_process[j].WaitingTime;
+		tat += temp_process[j].TurnAroundTime;
+	}
+	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
+	printf("Average Turnaround time : %f\n", tat/numOfProcess);
+	*/
 }
 
 /*
@@ -757,10 +891,10 @@ void PrintMenu(Queue *queue){
 			
 		case 3:
 			// TODO : Preemptive Shortest Job First
-			for(i = 0 ; i < numOfProcess ; i++){
-				Enqueue(&queue_P_SJF, process_P_SJF+i);
-				printf("process[%d] was copied into Preemptive Priority queue!\n", i);
-			}
+			sort_BurstTime(process_P_SJF);
+			CopyProcess2Queue(&queue_P_SJF, process_P_SJF);
+			Run_P_SJF(&queue_P_SJF);
+			
 			break;
 			
 		// Non-Preemptive Priority

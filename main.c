@@ -60,12 +60,13 @@ void CopyProcess2Queue(Queue *queue, Process *process);
 void CopyQueue2Process(Queue *queue, Process *process);
 
 // User Interface
-void PrintMenu(Queue *queue);
+void PrintMenu();
+void Evaluation(Process *process);
 
 // scheduling algorithms
 void sort_Arrival_Time(Process *process); // #9 Arrival Time에 대해서 sort 
 void sort_Priority(Process *process); // #8 Priority에 대해서 sort 
-void sort_BurstTime(Process *process); // #15 Burst time에 대해서 sort
+void sort_Burst_Time(Process *process); // #15 Burst time에 대해서 sort
 
 void Run_FCFS(Process *process); // #12
 void Run_P_Priority(Queue *queue); // #14
@@ -128,11 +129,24 @@ int main(){
 	}
 	*/
 	
-	PrintMenu(&jobQueue);
+	PrintMenu();
 		
 }
 
 /*---------------------------------------------------*/
+
+void Evaluation(Process *process){
+	// Evaluation
+	int i;
+	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
+	float tat = 0;
+	for(i = 0 ; i < numOfProcess ; i++){
+		tat += process[i].TurnAroundTime;
+	}
+	awt = (tat - sumOfBurstTime);
+	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
+	printf("Average Turnaround time : %f\n", tat/numOfProcess);
+}
 
 /*
 * #18
@@ -210,6 +224,7 @@ void Run_P_SJF(Queue *queue){
 	
 	printf("total running time : %d \n", time); 
 	
+	
 	// 간트차트 출력
 	j = 0;
 	while(gant_chart[j] != '\0'){
@@ -225,17 +240,11 @@ void Run_P_SJF(Queue *queue){
 		j++;
 	}
 	
-	// Evaluation
-	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
-	float tat = 0;
-	/*
-	for(j = 0 ; j < numOfProcess ; j++){
-		awt += temp_process[j].WaitingTime;
-		tat += temp_process[j].TurnAroundTime;
-	}
-	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
-	printf("Average Turnaround time : %f\n", tat/numOfProcess);
-	*/
+	printf("\n");
+	
+	Evaluation(temp_process);
+	
+	//return;	
 }
 
 /*
@@ -350,17 +359,8 @@ void Run_RR(Queue *queue, int time_quantum, Process *process){
 	}
 	
 	printf("\n");
-	
-	// Evaluation
-	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
-	float tat = 0;
-	for(i = 0 ; i < numOfProcess ; i++){
-//		awt += showprocess[i].WaitingTime;
-		tat += showprocess[i].TurnAroundTime;
-	}
-	awt = (tat - sumOfBurstTime);
-	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
-	printf("Average Turnaround time : %f\n", tat/numOfProcess);
+
+	Evaluation(showprocess);
 }
 
 
@@ -449,15 +449,10 @@ void Run_NP_SJF(Process *process){
 		printf("%2d|",i+1);
 		i++;
 	}
-	// Evaluation
-	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
-	float tat = 0;
-	for(i = 0 ; i < numOfProcess ; i++){
-		awt += process[i].WaitingTime;
-		tat += process[i].TurnAroundTime;
-	}
-	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
-	printf("Average Turnaround time : %f\n", tat/numOfProcess);
+	
+	printf("\n");
+	
+	Evaluation(process);
 }
 
 /*
@@ -466,7 +461,7 @@ void Run_NP_SJF(Process *process){
 * Burst Time을 기준으로 sort 
 *
 */
-void sort_BurstTime(Process *process){
+void sort_Burst_Time(Process *process){
 	Process temp_process;
 	int i, j;
 	
@@ -640,17 +635,9 @@ void Run_P_Priority(Queue *queue){
 		j++;
 	}
 	
-	// Evaluation
-	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
-	float tat = 0;
-	/*
-	for(j = 0 ; j < numOfProcess ; j++){
-		awt += temp_process[j].WaitingTime;
-		tat += temp_process[j].TurnAroundTime;
-	}
-	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
-	printf("Average Turnaround time : %f\n", tat/numOfProcess);
-	*/
+	printf("\n");
+
+	Evaluation(temp_process);
 }
 
 /*
@@ -747,15 +734,9 @@ void Run_NP_Priority(Process *process){
 		i++;
 	}
 	
-	// Evaluation
-	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
-	float tat = 0;
-	for(i = 0 ; i < numOfProcess ; i++){
-		awt += process[i].WaitingTime;
-		tat += process[i].TurnAroundTime;
-	}
-	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
-	printf("Average Turnaroun time : %f\n", tat/numOfProcess);
+	printf("\n");
+	
+	Evaluation(process);
 }
 
 /*
@@ -836,15 +817,10 @@ void Run_FCFS(Process *process){
 		printf("%2d|",i+1);
 		i++;
 	}
-	// Evaluation
-	float awt = 0; // 함수로 바뀔 수 있으니 여기서 선언
-	float tat = 0;
-	for(i = 0 ; i < numOfProcess ; i++){
-		awt += process[i].WaitingTime;
-		tat += process[i].TurnAroundTime;
-	}
-	printf("\nAverage Waiting time : %f\n", awt/numOfProcess);
-	printf("Average Turnaround time : %f\n", tat/numOfProcess);
+	
+	printf("\n");
+	
+	Evaluation(process);
 }
 
 /*
@@ -854,7 +830,7 @@ void Run_FCFS(Process *process){
 * 20170529
 *
 */
-void PrintMenu(Queue *queue){
+void PrintMenu(){
 	int select_mode, i;
 	int time_quantum; // for Round Robin Scheduling Algorithm
 	
@@ -884,14 +860,15 @@ void PrintMenu(Queue *queue){
 		case 2:
 			
 			CopyProcess2Queue(&queue_NP_SJF, process_NP_SJF);
-			sort_BurstTime(process_NP_SJF);
+			sort_Burst_Time(process_NP_SJF);
 			Run_NP_SJF(process_NP_SJF);
 			
 			break;
 			
+		// Preemptive Shortest Job First
 		case 3:
-			// TODO : Preemptive Shortest Job First
-			sort_BurstTime(process_P_SJF);
+			
+			sort_Burst_Time(process_P_SJF);
 			CopyProcess2Queue(&queue_P_SJF, process_P_SJF);
 			Run_P_SJF(&queue_P_SJF);
 			
@@ -930,6 +907,7 @@ void PrintMenu(Queue *queue){
 			
 		default:
 			printf("Please enter between 1 and 6 !\n");
+			
 			break;
 	}
 }
@@ -966,6 +944,7 @@ void sort_Arrival_Time(Process *process){
 				temp_process = process[j];
 				process[j] = process[j+1];
 				process[j+1] = temp_process;
+				
 			}
 		}
 	} 

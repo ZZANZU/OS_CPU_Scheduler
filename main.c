@@ -39,35 +39,34 @@ typedef struct Queue{
 	int count; // num of process in queue.
 }Queue;
 
-
-
 int numOfProcess; // 랜덤하게 생성된 프로세스들의 개수를 저장. 
 int sumOfBurstTime; // 프로세스들의 CPU burst time의 합. 
 
-
 /*---------------------------------------------------*/
-// Queue 
+// functinos related to Queue 
 void InitQueue(Queue *queue);
 int IsQueueEmpty(Queue *queue);
 void Enqueue(Queue *queue, Process *process);
 Process *Dequeue(Queue *queue);
 
-// Process
+// functinos related to Process
 Process *CreateProcess(Queue* queue);
 void ShowProcess(Process *process);
 void CopyProcess(Process *process);
 void CopyProcess2Queue(Queue *queue, Process *process);
 void CopyQueue2Process(Queue *queue, Process *process);
 
-// User Interface
+// User Interface functions
 void PrintMenu();
 void Evaluation(Process *process);
+void ShowGanttChart(int *gantt_chart);
 
-// scheduling algorithms
+// sorting functions
 void sort_Arrival_Time(Process *process); // #9 Arrival Time에 대해서 sort 
 void sort_Priority(Process *process); // #8 Priority에 대해서 sort 
 void sort_Burst_Time(Process *process); // #15 Burst time에 대해서 sort
 
+// scheduling algorithms functions
 void Run_FCFS(Process *process); // #12
 void Run_P_Priority(Queue *queue); // #14
 void Run_NP_Priority(Process *process); // #13
@@ -135,6 +134,26 @@ int main(){
 
 /*---------------------------------------------------*/
 
+void ShowGanttChart(int *gantt_chart){
+	// 간트차트 출력
+	int j = 0;
+	while(gantt_chart[j] != '\0'){
+		printf("%2d|",gantt_chart[j]);
+		j++;
+	}
+	printf("\n");
+	j = 0;
+	
+	// 시간 x축 출력 
+	while(gantt_chart[j] != '\0'){
+		printf("%2d|",j+1);
+		j++;
+	}
+	
+	printf("\n");
+}
+
+
 void Evaluation(Process *process){
 	// Evaluation
 	int i;
@@ -167,7 +186,6 @@ void Run_P_SJF(Queue *queue){
 	
 	CopyQueue2Process(queue, temp_process); // queue의 원소(프로세스)를 temp_process배열(?)로 만듬. 
 	
-	printf("\nshow process\n\n");
 //	ShowProcess(temp_process);//debugging
 //	sort_Priority(temp_process);
 	
@@ -222,26 +240,10 @@ void Run_P_SJF(Queue *queue){
 	
 	ShowProcess(temp_process);
 	
-	printf("total running time : %d \n", time); 
+	printf("total running time : %d\n\n", time); 
 	
-	
-	// 간트차트 출력
-	j = 0;
-	while(gant_chart[j] != '\0'){
-		printf("%2d|",gant_chart[j]);
-		j++;
-	}
-	printf("\n");
-	j = 0;
-	
-	// 시간 x축 출력 
-	while(gant_chart[j] != '\0'){
-		printf("%2d|",j+1);
-		j++;
-	}
-	
-	printf("\n");
-	
+	ShowGanttChart(gant_chart);	
+
 	Evaluation(temp_process);
 	
 	//return;	
@@ -344,21 +346,7 @@ void Run_RR(Queue *queue, int time_quantum, Process *process){
 	
 	sort_Arrival_Time(showprocess); // 뒤죽박죽인 terminateQueue의 프로세스들을 정렬한 뒤 출력 
 	
-	// 간트차트 출력
-	i = 0;
-	while(gant_chart[i] != '\0'){
-		printf("%2d|",gant_chart[i]);
-		i++;
-	}
-	printf("\n");
-	i = 0;
-	// 시간 x축 출력 
-	while(gant_chart[i] != '\0'){
-		printf("%2d|",i+1);
-		i++;
-	}
-	
-	printf("\n");
+	ShowGanttChart(gant_chart);
 
 	Evaluation(showprocess);
 }
@@ -434,23 +422,9 @@ void Run_NP_SJF(Process *process){
 	
 	ShowProcess(process);
 	
-	printf("total running time : %d \n", time); 
+	printf("total running time : %d\n\n", time); 
 	
-	// 간트차트 출력
-	i = 0;
-	while(gant_chart[i] != '\0'){
-		printf("%2d|",gant_chart[i]);
-		i++;
-	}
-	printf("\n");
-	i = 0;
-	// 시간 x축 출력 
-	while(gant_chart[i] != '\0'){
-		printf("%2d|",i+1);
-		i++;
-	}
-	
-	printf("\n");
+	ShowGanttChart(gant_chart);
 	
 	Evaluation(process);
 }
@@ -618,24 +592,9 @@ void Run_P_Priority(Queue *queue){
 	
 	ShowProcess(temp_process);
 	
-	printf("total running time : %d \n", time); 
+	printf("total running time : %d\n\n", time); 
 	
-	// 간트차트 출력
-	j = 0;
-	while(gant_chart[j] != '\0'){
-		printf("%2d|",gant_chart[j]);
-		j++;
-	}
-	printf("\n");
-	j = 0;
-	
-	// 시간 x축 출력 
-	while(gant_chart[j] != '\0'){
-		printf("%2d|",j+1);
-		j++;
-	}
-	
-	printf("\n");
+	ShowGanttChart(gant_chart);
 
 	Evaluation(temp_process);
 }
@@ -718,23 +677,9 @@ void Run_NP_Priority(Process *process){
 	
 	ShowProcess(process);
 	
-	printf("total running time : %d \n", time); 
+	printf("total running time : %d\n\n", time); 
 	
-	// 간트차트 출력
-	i = 0;
-	while(gant_chart[i] != '\0'){
-		printf("%2d|",gant_chart[i]);
-		i++;
-	}
-	printf("\n");
-	i = 0;
-	// 시간 x축 출력 
-	while(gant_chart[i] != '\0'){
-		printf("%2d|",i+1);
-		i++;
-	}
-	
-	printf("\n");
+	ShowGanttChart(gant_chart);
 	
 	Evaluation(process);
 }
@@ -802,23 +747,9 @@ void Run_FCFS(Process *process){
 	
 	ShowProcess(process); // 실행 결과 출력
 	
-	printf("total running time : %d \n", time);
+	printf("total running time : %d\n\n", time);
 	
-	// 간트차트 출력
-	i = 0;
-	while(gant_chart[i] != '\0'){
-		printf("%2d|",gant_chart[i]);
-		i++;
-	}
-	printf("\n");
-	i = 0;
-	// 시간 x축 출력 
-	while(gant_chart[i] != '\0'){
-		printf("%2d|",i+1);
-		i++;
-	}
-	
-	printf("\n");
+	ShowGanttChart(gant_chart);
 	
 	Evaluation(process);
 }
@@ -967,8 +898,6 @@ void sort_Priority(Process *process){
 		}
 	}
 	
-	// arrival time으로도 sorting
-	// priority 같은게 2개보다 많으면?
 	for(i = 0 ; i < numOfProcess - 1 ; i++){
 		if(process[i].Priority == process[i+1].Priority){
 			if(process[i].ArrivalTime > process[i+1].ArrivalTime){
@@ -1085,7 +1014,6 @@ Process* Dequeue(Queue *queue){
 	Node *now = (Node*)malloc(sizeof(Process));//
 	
 	if(IsQueueEmpty(queue)){
-		//printf("queue is empty!\n");
 		return returnNode;
 	}
 	
@@ -1103,7 +1031,6 @@ Process* Dequeue(Queue *queue){
 
 // #1 Copying processes for each scheduling algorithms.
  void  CopyProcess(Process *process){	 		
-	// Copying @param - process
 	process_FCFS = process;
 	process_NP_SJF = process;
 	process_P_SJF = process;

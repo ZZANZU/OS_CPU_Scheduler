@@ -26,6 +26,7 @@ typedef struct Process{
 	char WaitingTime; // 이렇게해야 priority가 튀는 값(딱 하나)이 없어짐. 
 	int TurnAroundTime;
 	int bt; // CPU burst time을 저장, waiting time 구할 때 사용 
+//	short int io;
 }Process;
 
 typedef struct Node{
@@ -246,7 +247,7 @@ void Run_P_SJF(Queue *queue){
 
 	Evaluation(temp_process);
 	
-	//return;	
+	return;	
 }
 
 /*
@@ -427,6 +428,8 @@ void Run_NP_SJF(Process *process){
 	ShowGanttChart(gant_chart);
 	
 	Evaluation(process);
+	
+	return;
 }
 
 /*
@@ -597,6 +600,8 @@ void Run_P_Priority(Queue *queue){
 	ShowGanttChart(gant_chart);
 
 	Evaluation(temp_process);
+	
+	return;
 }
 
 /*
